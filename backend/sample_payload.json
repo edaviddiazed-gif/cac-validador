@@ -1,0 +1,106 @@
+{
+  "cabecera": {
+    "id_reporte": "CAC-2024-00001",
+    "fecha_corte": "2024-12-31",
+    "fuente": "EAPB"
+  },
+  "paciente": {
+    "primer_nombre": "MARIA",
+    "segundo_nombre": "NONE",
+    "primer_apellido": "GOMEZ",
+    "segundo_apellido": "ROJAS",
+    "tipo_id": "CC",
+    "numero_id": "52987654",
+    "fecha_nacimiento": "1975-06-15",
+    "sexo": "F",
+    "ocupacion": "9999",
+    "regimen_afiliacion": "C",
+    "codigo_eps": "EPS036",
+    "pertenencia_etnica": "6",
+    "grupo_poblacional": "35",
+    "municipio_residencia": "11001",
+    "telefono": "3001234567",
+    "fecha_afiliacion": "2020-03-01"
+  },
+  "diagnostico": {
+    "cie10_neoplasia_primaria": "C509",
+    "fecha_diagnostico": "2023-08-15",
+    "fecha_remision": "2023-07-20",
+    "fecha_ingreso_ips": "2023-07-25",
+    "tipo_estudio_diagnostico": "5",
+    "motivo_sin_histopatologia": "98",
+    "fecha_recoleccion_muestra": "2023-07-26",
+    "fecha_informe_histopatologico": "2023-07-30",
+    "codigo_ips_confirmadora": "0101230600",
+    "fecha_primera_consulta_tratante": "2023-08-20",
+    "histologia": "1",
+    "grado_diferenciacion": "2",
+    "estadificacion_tnm": "11",
+    "fecha_estadificacion_tnm": "2023-08-22",
+    "her2_realizado": "1",
+    "fecha_her2": "2023-08-10",
+    "resultado_her2": "3",
+    "estadificacion_dukes": "98",
+    "ann_arbor_lugano": "98",
+    "gleason": "98",
+    "clasificacion_riesgo": "98",
+    "objetivo_inicial": "1",
+    "objetivo_periodo": "2",
+    "antecedente_otro_cancer": "2"
+  },
+  "terapia_sistemica": {
+    "recibio_qt": "1",
+    "num_ciclos": "6",
+    "primer_esquema": {
+      "ubicacion_temporal": "1",
+      "fecha_inicio": "2023-09-05",
+      "fecha_fin": "2023-12-20",
+      "num_ips": "1",
+      "ips1": "0101230600",
+      "ips2": "98",
+      "num_medicamentos": "2",
+      "medicamentos": ["L01DB03", "L01CA01"],
+      "qt_intratecal": "2",
+      "caracteristicas": "1"
+    },
+    "ultimo_esquema": null
+  },
+  "cirugia": {
+    "recibio_cirugia": "1",
+    "num_cirugias": "1",
+    "fecha_primera": "2024-01-10",
+    "ips_primera": "0101230600",
+    "cups_primera": "471101",
+    "ubicacion_primera": "1"
+  },
+  "radioterapia": {
+    "recibio_rt": "98"
+  },
+  "trasplante": {
+    "recibio_trasplante": "98"
+  },
+  "cirugia_reconstructiva": {
+    "recibio_cx_rec": "98"
+  },
+  "cuidados_paliativos": {
+    "valorado": "2"
+  },
+  "soporte": {
+    "psiquiatria": "98",
+    "nutricion": "1",
+    "fecha_nutricion": "2023-10-15",
+    "soporte_nutricional": "4",
+    "terapias_complementarias": "98"
+  },
+  "resultado": {
+    "tipo_tratamiento_corte": "5",
+    "resultado_oncologico": "3",
+    "estado_vital": "1",
+    "novedad_administrativa": "0",
+    "novedad_clinica": "3",
+    "fecha_muerte": "1845-01-01",
+    "causa_muerte": "98",
+    "codigo_bdua": "BDUA-2024-123",
+    "fecha_bdua": "2024-01-01"
+  }
+}
