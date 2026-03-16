@@ -242,3 +242,4 @@ Contraseña: Res247_2023!
 ```
 
 Cambiar en `docker-compose.yml` → variables de entorno `ADMIN_USER` / `ADMIN_PASS`.
+"# cac-validador"  
