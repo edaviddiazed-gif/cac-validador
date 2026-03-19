@@ -97,20 +97,31 @@ VAR_MAP = {
     "V78": "cirugia.cups_primera",
     "V79": "cirugia.ubicacion_primera",
     "V80": "cirugia.fecha_ultima",
+    "V81": "cirugia.motivo_ultima",
     "V82": "cirugia.ips_ultima",
     "V83": "cirugia.cups_ultima",
     "V84": "cirugia.ubicacion_ultima",
+    "V85": "cirugia.estado_vital_cirugia",
     "V86": "radioterapia.recibio_rt",
     "V87": "radioterapia.num_sesiones",
     "V88": "radioterapia.primer_esquema.fecha_inicio",
     "V89": "radioterapia.primer_esquema.ubicacion_temporal",
+    "V90": "radioterapia.primer_esquema.tipo_cups",
     "V91": "radioterapia.primer_esquema.num_ips",
+    "V92": "radioterapia.primer_esquema.codigo_ips1",
+    "V93": "radioterapia.primer_esquema.codigo_ips2",
     "V94": "radioterapia.primer_esquema.fecha_fin",
     "V95": "radioterapia.primer_esquema.caracteristicas",
     "V96": "radioterapia.primer_esquema.motivo_finalizacion",
     "V97": "radioterapia.ultimo_esquema.fecha_inicio",
     "V98": "radioterapia.ultimo_esquema.ubicacion_temporal",
+    "V99": "radioterapia.ultimo_esquema.tipo_cups",
+    "V100": "radioterapia.ultimo_esquema.num_ips",
+    "V101": "radioterapia.ultimo_esquema.codigo_ips1",
+    "V102": "radioterapia.ultimo_esquema.codigo_ips2",
     "V103": "radioterapia.ultimo_esquema.fecha_fin",
+    "V104": "radioterapia.ultimo_esquema.caracteristicas",
+    "V105": "radioterapia.ultimo_esquema.motivo_finalizacion",
     "V106": "trasplante.recibio_trasplante",
     "V107": "trasplante.tipo_trasplante",
     "V108": "trasplante.ubicacion_trasplante",
@@ -120,6 +131,12 @@ VAR_MAP = {
     "V112": "cirugia_reconstructiva.fecha_cx_rec",
     "V113": "cirugia_reconstructiva.ips_cx_rec",
     "V114": "cuidados_paliativos.valorado",
+    "V114.1": "cuidados_paliativos.med_especialista_paliativo",
+    "V114.2": "cuidados_paliativos.prof_salud_especialista_paliativo",
+    "V114.3": "cuidados_paliativos.med_especialista_otra",
+    "V114.4": "cuidados_paliativos.med_general",
+    "V114.5": "cuidados_paliativos.trabajo_social",
+    "V114.6": "cuidados_paliativos.otro_prof_no_especializado",
     "V115": "cuidados_paliativos.fecha_primera_atencion",
     "V116": "cuidados_paliativos.ips_paliativo",
     "V117": "soporte.psiquiatria",
@@ -128,8 +145,11 @@ VAR_MAP = {
     "V120": "soporte.nutricion",
     "V121": "soporte.fecha_nutricion",
     "V122": "soporte.ips_nutricion",
-    "V125": "resultado.estado_vital",
+    "V123": "soporte.soporte_nutricional",
+    "V124": "soporte.terapias_complementarias",
+    "V125": "resultado.tipo_tratamiento_corte",
     "V126": "resultado.resultado_oncologico",
+    "V127": "resultado.estado_vital",
     "V128": "resultado.novedad_administrativa",
     "V129": "resultado.novedad_clinica",
     "V130": "resultado.fecha_desafiliacion",
@@ -137,11 +157,54 @@ VAR_MAP = {
     "V132": "resultado.causa_muerte",
     "V133": "resultado.codigo_bdua",
     "V134": "resultado.fecha_bdua",
+    # ── Fases quimioterapia hematolinfáticos ──
+    "V46.1": "terapia_sistemica.fases.prefase",
+    "V46.2": "terapia_sistemica.fases.induccion",
+    "V46.3": "terapia_sistemica.fases.intensificacion",
+    "V46.4": "terapia_sistemica.fases.consolidacion",
+    "V46.5": "terapia_sistemica.fases.reinduccion",
+    "V46.6": "terapia_sistemica.fases.mantenimiento",
+    "V46.7": "terapia_sistemica.fases.mantenimiento_largo",
+    "V46.8": "terapia_sistemica.fases.otra_fase",
+    # ── IPS primer esquema ──
+    "V51": "terapia_sistemica.primer_esquema.codigo_ips1",
+    "V52": "terapia_sistemica.primer_esquema.codigo_ips2",
+    # ── Medicamentos primer esquema ──
+    "V53.1": "terapia_sistemica.primer_esquema.med1",
+    "V53.2": "terapia_sistemica.primer_esquema.med2",
+    "V53.3": "terapia_sistemica.primer_esquema.med3",
+    "V53.4": "terapia_sistemica.primer_esquema.med4",
+    "V53.5": "terapia_sistemica.primer_esquema.med5",
+    "V53.6": "terapia_sistemica.primer_esquema.med6",
+    "V53.7": "terapia_sistemica.primer_esquema.med7",
+    "V53.8": "terapia_sistemica.primer_esquema.med8",
+    "V53.9": "terapia_sistemica.primer_esquema.med9",
+    "V54": "terapia_sistemica.primer_esquema.med_adicional1",
+    "V55": "terapia_sistemica.primer_esquema.med_adicional2",
+    "V56": "terapia_sistemica.primer_esquema.med_adicional3",
+    "V57": "terapia_sistemica.primer_esquema.intratecal",
+    # ── IPS / medicamentos último esquema ──
+    "V64": "terapia_sistemica.ultimo_esquema.codigo_ips1",
+    "V65": "terapia_sistemica.ultimo_esquema.codigo_ips2",
+    "V66.1": "terapia_sistemica.ultimo_esquema.med1",
+    "V66.2": "terapia_sistemica.ultimo_esquema.med2",
+    "V66.3": "terapia_sistemica.ultimo_esquema.med3",
+    "V66.4": "terapia_sistemica.ultimo_esquema.med4",
+    "V66.5": "terapia_sistemica.ultimo_esquema.med5",
+    "V66.6": "terapia_sistemica.ultimo_esquema.med6",
+    "V66.7": "terapia_sistemica.ultimo_esquema.med7",
+    "V66.8": "terapia_sistemica.ultimo_esquema.med8",
+    "V66.9": "terapia_sistemica.ultimo_esquema.med9",
+    "V67": "terapia_sistemica.ultimo_esquema.med_adicional1",
+    "V68": "terapia_sistemica.ultimo_esquema.med_adicional2",
+    "V69": "terapia_sistemica.ultimo_esquema.med_adicional3",
+    "V70": "terapia_sistemica.ultimo_esquema.intratecal",
 }
 
 
 def get_path(vname: str) -> str:
-    m = re.match(r"(V\d+)", vname.strip())
+    """Convierte 'V46.1' o 'V53Nombre largo' → ruta JSON del reporte."""
+    m = re.match(r"(V\d+(?:\.\d+)?)", vname.strip())
     if m:
         return VAR_MAP.get(m.group(1), m.group(1))
     return vname.strip()
@@ -216,14 +279,41 @@ def _parse_cups_colombia(ruta: str) -> dict:
 
 # ─── Parser de reglas ─────────────────────────────────────────────────────
 
+def _extraer_vnum(texto: str) -> str:
+    """Extrae el número de variable (ej: 'V36', 'V46.1', 'V66.9') desde el inicio del texto."""
+    m = re.match(r"(V\d+(?:\.\d+)?)", texto.strip())
+    return m.group(1) if m else ""
+
+
 def _parse_reglas(df: pd.DataFrame) -> list:
+    r"""
+    Parsea las reglas del Excel CAC en tres patrones:
+
+    Patrón CONDICIONAL:
+        Cuando V{cond_var} sea {op} {val} Entonces V{target_var}... DEBE SER {op} {val}
+
+    Patrón SIMPLE:
+        V{target_var}... DEBE SER {op} {val}
+
+    Patrón DEFINICION (De estructura):
+        «No cumple con la definicion de la Variable V{n}...»
+        → se parsea como regla DEFINICION para trazabilidad.
+
+    La mejora clave respecto a la versión anterior: el regex para capturar
+    el nombre de la variable target (entre 'Entonces' y 'DEBE SER') ahora
+    acepta cualquier carácter incluyendo paréntesis, puntos, tildes y dígitos,
+    y se ancla sobre el número de variable (V\d+(?:\.\d+)?) que viene justo
+    después de 'Entonces'.
+    """
     reglas = []
+
     for _, row in df.iterrows():
         desc = str(row.get("Descripción", "")).strip()
         cod  = str(row.get("Código de Error", "")).strip()
         tipo = str(row.get("Tipo de Error", "")).strip()
         yo   = str(row.get("Y/O", "")).strip()
         var  = str(row.get("No.VARIABLE", "")).strip()
+        detalle = str(row.get("Detalle error y definicíon de la variable", "")).strip()
 
         base = {
             "id": cod, "variable": var, "tipo_error": tipo,
@@ -233,43 +323,76 @@ def _parse_reglas(df: pd.DataFrame) -> list:
             "nivel": "ERROR", "mensaje": None, "activa": True,
         }
 
-        # Patrón 1: CONDICIONAL
+        # ── Patrón 1: CONDICIONAL ──────────────────────────────────────────
+        # Forma: Cuando V{n} sea {op} {val} Entonces V{n}[texto libre] DEBE SER {op} {val}
+        # Usamos lookahead negativo (?!DEBE\sSER) para consumir el texto descriptivo
+        # entre el número de variable target y el literal "DEBE SER", tolerando
+        # cualquier carácter incluidos paréntesis, tildes, puntos y la letra D.
         m = re.match(
-            r"Cuando\s+(V\d+\w*)\s+sea\s+([=<>!]+)\s*(\S+)\s+Entonces\s+(V\d+[\w\s]*?)DEBE\s+SER\s+([=<>!]+)\s*(.+)",
+            r"Cuando\s+(V\d+(?:\.\d+)?)\s+sea\s+([=<>!]+)\s*(\S+)\s+"
+            r"Entonces\s+(V\d+(?:\.\d+)?)(?:(?!\bDEBE\s+SER\b).)*\bDEBE\s+SER\s+([=<>!]+)\s*(.+)",
             desc, re.IGNORECASE,
         )
         if m:
             cv, cop, cval, tv, top, tval = m.groups()
-            tv_clean = re.match(r"(V\d+)", tv).group(1)
             base.update({
                 "tipo_regla": "CONDICIONAL",
-                "campo": get_path(tv_clean),
-                "condicion": {"campo": get_path(cv), "operador": cop.strip(), "valor": cval.strip()},
-                "restriccion": {"operador": top.strip(), "valor": tval.strip()},
+                "campo": get_path(tv),
+                "condicion": {
+                    "campo": get_path(cv),
+                    "operador": cop.strip(),
+                    "valor": cval.strip(),
+                },
+                "restriccion": {
+                    "operador": top.strip(),
+                    "valor": tval.strip(),
+                },
                 "mensaje": (
-                    f"Cuando '{get_path(cv)}' {cop.strip()} '{cval.strip()}', "
-                    f"el campo '{get_path(tv_clean)}' debe ser {top.strip()} '{tval.strip()}'."
+                    f"Cuando '{get_path(cv)}' es {cop.strip()} '{cval.strip()}', "
+                    f"el campo '{get_path(tv)}' debe ser {top.strip()} '{tval.strip()}'."
                 ),
             })
             reglas.append(base)
             continue
 
-        # Patrón 2: SIMPLE
-        m2 = re.match(r"(V\d+\w*)\s+DEBE\s+SER\s+([=<>!]+)\s*(.+)", desc, re.IGNORECASE)
+        # ── Patrón 2: SIMPLE ───────────────────────────────────────────────
+        # Forma: V{n}[texto libre] DEBE SER {op} {val}
+        m2 = re.match(
+            r"(V\d+(?:\.\d+)?)(?:(?!\bDEBE\s+SER\b).)*\bDEBE\s+SER\s+([=<>!]+)\s*(.+)",
+            desc, re.IGNORECASE,
+        )
         if m2:
             tv, top, tval = m2.groups()
-            tv_clean = re.match(r"(V\d+)", tv).group(1)
             base.update({
                 "tipo_regla": "SIMPLE",
-                "campo": get_path(tv_clean),
+                "campo": get_path(tv),
                 "restriccion": {"operador": top.strip(), "valor": tval.strip()},
-                "mensaje": f"El campo '{get_path(tv_clean)}' debe ser {top.strip()} '{tval.strip()}'.",
+                "mensaje": (
+                    f"El campo '{get_path(tv)}' debe ser {top.strip()} '{tval.strip()}'."
+                ),
             })
             reglas.append(base)
             continue
 
+        # ── Patrón 3: DEFINICION (De estructura) ──────────────────────────
+        # "No cumple con la definicion de la Variable V{n}..."
+        m3 = re.match(r"No cumple con la definicion", desc, re.IGNORECASE)
+        if m3:
+            # Intentar extraer la variable desde la descripción o desde var
+            v_match = re.search(r"(V\d+(?:\.\d+)?)", desc)
+            tv = v_match.group(1) if v_match else (f"V{var}" if var else "")
+            base.update({
+                "tipo_regla": "DEFINICION",
+                "campo": get_path(tv) if tv else None,
+                "mensaje": detalle[:200] if detalle else desc[:200],
+            })
+            reglas.append(base)
+            continue
+
+        # ── Sin parsear ────────────────────────────────────────────────────
         base["tipo_regla"] = "NO_PARSEADA"
         reglas.append(base)
+
     return reglas
 
 
@@ -364,15 +487,17 @@ def generar_desde_excel(
     with open(reg_path, "w", encoding="utf-8") as f:
         json.dump(reglas, f, ensure_ascii=False, indent=2)
 
-    parseadas   = sum(1 for r in reglas if r["tipo_regla"] != "NO_PARSEADA")
+    parseadas   = sum(1 for r in reglas if r["tipo_regla"] not in ("NO_PARSEADA",))
     condicional = sum(1 for r in reglas if r["tipo_regla"] == "CONDICIONAL")
     simple      = sum(1 for r in reglas if r["tipo_regla"] == "SIMPLE")
+    definicion  = sum(1 for r in reglas if r["tipo_regla"] == "DEFINICION")
     no_parse    = sum(1 for r in reglas if r["tipo_regla"] == "NO_PARSEADA")
 
     print(f"  ✅ {cat_path.name}: {len(catalogos['cie10_validos'])} CIE-10, "
           f"{len(catalogos['atc_validos'])} ATC, {len(catalogos['cups_validos'])} CUPS CAC")
     print(f"  ✅ {reg_path.name}: {parseadas} parseadas "
-          f"({condicional} condicional, {simple} simple), {no_parse} sin parsear")
+          f"({condicional} condicional, {simple} simple, {definicion} definicion), "
+          f"{no_parse} sin parsear")
 
     return {
         "cie10_validos": len(catalogos['cie10_validos']),
@@ -384,6 +509,7 @@ def generar_desde_excel(
         "reglas_parseadas": parseadas,
         "reglas_condicionales": condicional,
         "reglas_simples": simple,
+        "reglas_definicion": definicion,
         "reglas_no_parseadas": no_parse,
     }
 

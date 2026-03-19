@@ -35,14 +35,36 @@ def validar_formato_fechas(r: CACReport) -> List[ErrorDetalle]:
     """Valida que las fechas tengan formato AAAA-MM-DD o sean especiales válidas."""
     errores: List[ErrorDetalle] = []
     campos_fecha = [
-        ("paciente.fecha_nacimiento", r.paciente.fecha_nacimiento, "V7"),
-        ("paciente.fecha_afiliacion", r.paciente.fecha_afiliacion, "V16"),
-        ("diagnostico.fecha_diagnostico", r.diagnostico.fecha_diagnostico, "V18"),
-        ("diagnostico.fecha_remision", r.diagnostico.fecha_remision, "V19"),
-        ("diagnostico.fecha_ingreso_ips", r.diagnostico.fecha_ingreso_ips, "V20"),
-        ("diagnostico.fecha_informe_histopatologico", r.diagnostico.fecha_informe_histopatologico, "V24"),
-        ("resultado.fecha_muerte", r.resultado.fecha_muerte, "V129"),
-        ("resultado.fecha_desafiliacion", r.resultado.fecha_desafiliacion, "V128"),
+        ("paciente.fecha_nacimiento",                          r.paciente.fecha_nacimiento,                          "V7"),
+        ("paciente.fecha_afiliacion",                          r.paciente.fecha_afiliacion,                          "V16"),
+        ("diagnostico.fecha_diagnostico",                      r.diagnostico.fecha_diagnostico,                      "V18"),
+        ("diagnostico.fecha_remision",                         r.diagnostico.fecha_remision,                         "V19"),
+        ("diagnostico.fecha_ingreso_ips",                      r.diagnostico.fecha_ingreso_ips,                      "V20"),
+        ("diagnostico.fecha_recoleccion_muestra",              r.diagnostico.fecha_recoleccion_muestra,              "V23"),
+        ("diagnostico.fecha_informe_histopatologico",          r.diagnostico.fecha_informe_histopatologico,          "V24"),
+        ("diagnostico.fecha_primera_consulta_tratante",        r.diagnostico.fecha_primera_consulta_tratante,        "V26"),
+        ("diagnostico.fecha_estadificacion_tnm",               r.diagnostico.fecha_estadificacion_tnm,               "V30"),
+        ("diagnostico.fecha_her2",                             r.diagnostico.fecha_her2,                             "V32"),
+        ("diagnostico.fecha_dukes",                            r.diagnostico.fecha_dukes,                            "V35"),
+        ("diagnostico.fecha_clasificacion_riesgo",             r.diagnostico.fecha_clasificacion_riesgo,             "V39"),
+        ("diagnostico.fecha_otro_cancer",                      r.diagnostico.fecha_otro_cancer,                      "V43"),
+        ("terapia_sistemica.primer_esquema.fecha_inicio",      r.terapia_sistemica.primer_esquema.fecha_inicio if r.terapia_sistemica.primer_esquema else None, "V49"),
+        ("terapia_sistemica.primer_esquema.fecha_fin",         r.terapia_sistemica.primer_esquema.fecha_fin if r.terapia_sistemica.primer_esquema else None,    "V58"),
+        ("terapia_sistemica.ultimo_esquema.fecha_inicio",      r.terapia_sistemica.ultimo_esquema.fecha_inicio if r.terapia_sistemica.ultimo_esquema else None,  "V62"),
+        ("terapia_sistemica.ultimo_esquema.fecha_fin",         r.terapia_sistemica.ultimo_esquema.fecha_fin if r.terapia_sistemica.ultimo_esquema else None,     "V71"),
+        ("cirugia.fecha_primera",                              r.cirugia.fecha_primera,                              "V76"),
+        ("cirugia.fecha_ultima",                               r.cirugia.fecha_ultima,                               "V80"),
+        ("radioterapia.primer_esquema.fecha_inicio",           r.radioterapia.primer_esquema.fecha_inicio if r.radioterapia.primer_esquema else None,            "V88"),
+        ("radioterapia.primer_esquema.fecha_fin",              r.radioterapia.primer_esquema.fecha_fin if r.radioterapia.primer_esquema else None,               "V94"),
+        ("radioterapia.ultimo_esquema.fecha_inicio",           r.radioterapia.ultimo_esquema.fecha_inicio if r.radioterapia.ultimo_esquema else None,            "V97"),
+        ("radioterapia.ultimo_esquema.fecha_fin",              r.radioterapia.ultimo_esquema.fecha_fin if r.radioterapia.ultimo_esquema else None,               "V103"),
+        ("trasplante.fecha_trasplante",                        r.trasplante.fecha_trasplante,                        "V109"),
+        ("cirugia_reconstructiva.fecha_cx_rec",                r.cirugia_reconstructiva.fecha_cx_rec,                "V112"),
+        ("cuidados_paliativos.fecha_primera_atencion",         r.cuidados_paliativos.fecha_primera_atencion,         "V115"),
+        ("soporte.fecha_psiquiatria",                          r.soporte.fecha_psiquiatria,                          "V118"),
+        ("soporte.fecha_nutricion",                            r.soporte.fecha_nutricion,                            "V121"),
+        ("resultado.fecha_desafiliacion",                      r.resultado.fecha_desafiliacion,                      "V130"),
+        ("resultado.fecha_muerte",                             r.resultado.fecha_muerte,                             "V131"),
     ]
     for campo, valor, var in campos_fecha:
         if not valor:
@@ -53,7 +75,8 @@ def validar_formato_fechas(r: CACReport) -> List[ErrorDetalle]:
             datetime.strptime(valor.strip(), "%Y-%m-%d")
         except ValueError:
             _err(errores, f"FMT-{var}", campo,
-                 f"Formato de fecha inválido en {campo}. Use AAAA-MM-DD o una fecha especial válida (1800-01-01, 1845-01-01, 1846-01-01).",
+                 f"Formato de fecha inválido en '{campo}'. Use AAAA-MM-DD o una fecha "
+                 f"especial válida (1800-01-01, 1845-01-01, 1846-01-01). (Variable {var})",
                  variable_res=var)
     return errores
 
