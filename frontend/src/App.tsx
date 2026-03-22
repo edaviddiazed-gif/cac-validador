@@ -41,19 +41,46 @@ export default function App() {
   const [validation, setValidation] = useState<ValidationResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Reglas levantadas: set de id_regla que el usuario justificó clínicamente
+  const [levantadas, setLevantadas] = useState<Set<string>>(new Set());
+
+  const toggleLevantada = useCallback((idRegla: string) => {
+    setLevantadas(prev => {
+      const next = new Set(prev);
+      if (next.has(idRegla)) {
+        next.delete(idRegla);
+      } else {
+        next.add(idRegla);
+      }
+      return next;
+    });
+  }, []);
 
   const set = useCallback((path: string, val: any) => {
-    setReport(prev => setNested(prev, path, val));
+    setReport(prev => {
+      let updated = setNested(prev, path, val);
+      // Sync resultado.fecha_bdua when cabecera.fecha_corte changes
+      // V134 is read from resultado.fecha_bdua by the validation engine
+      if (path === 'cabecera.fecha_corte') {
+        updated = setNested(updated, 'resultado.fecha_bdua', val);
+      }
+      return updated;
+    });
   }, []);
 
   const validar = async () => {
     setLoading(true);
     setError(null);
     try {
-      const { data } = await axios.post<ValidationResponse>(`${API}/api/validar-cac`, report);
+      const payload = { ...report, reglas_levantadas: Array.from(levantadas) };
+      const { data } = await axios.post<ValidationResponse>(`${API}/api/validar-cac`, payload);
       setValidation(data);
     } catch (e: any) {
-      setError(e?.response?.data?.detail ?? 'Error al conectar con el backend. ¿Está corriendo en http://localhost:8000?');
+      const detail = e?.response?.data?.detail;
+      const msg = Array.isArray(detail)
+        ? detail.map((d: any) => d.msg || JSON.stringify(d)).join(' | ')
+        : (typeof detail === 'string' ? detail : 'Error al conectar con el backend. ¿Está corriendo en http://localhost:8000?');
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -94,6 +121,11 @@ export default function App() {
               {validation.total_advertencias > 0 && (
                 <span style={{ background: '#78350F', borderRadius: '20px', padding: '3px 12px', color: '#FDE68A', fontWeight: 600 }}>
                   ⚠ {validation.total_advertencias} advertencia{validation.total_advertencias !== 1 ? 's' : ''}
+                </span>
+              )}
+              {levantadas.size > 0 && (
+                <span style={{ background: '#5B21B6', borderRadius: '20px', padding: '3px 12px', color: '#EDE9FE', fontWeight: 600 }}>
+                  ☑ {levantadas.size} levantada{levantadas.size !== 1 ? 's' : ''}
                 </span>
               )}
             </div>
@@ -187,14 +219,14 @@ export default function App() {
 
             {/* Formulario sección activa */}
             <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #E5E7EB', padding: '24px' }}>
-              {seccion === 0 && <SecIdentificacion data={report} set={set} val={validation} />}
-              {seccion === 1 && <SecDiagnostico data={report} set={set} val={validation} />}
-              {seccion === 2 && <SecTerapia data={report} set={set} val={validation} />}
-              {seccion === 3 && <SecCirugia data={report} set={set} val={validation} />}
-              {seccion === 4 && <SecRadioterapia data={report} set={set} val={validation} />}
-              {seccion === 5 && <SecTrasplante data={report} set={set} val={validation} />}
-              {seccion === 6 && <SecPaliativos data={report} set={set} val={validation} />}
-              {seccion === 7 && <SecResultado data={report} set={set} val={validation} />}
+              {seccion === 0 && <SecIdentificacion data={report} set={set} val={validation} levantadas={levantadas} onLevantarRegla={toggleLevantada} />}
+              {seccion === 1 && <SecDiagnostico data={report} set={set} val={validation} levantadas={levantadas} onLevantarRegla={toggleLevantada} />}
+              {seccion === 2 && <SecTerapia data={report} set={set} val={validation} levantadas={levantadas} onLevantarRegla={toggleLevantada} />}
+              {seccion === 3 && <SecCirugia data={report} set={set} val={validation} levantadas={levantadas} onLevantarRegla={toggleLevantada} />}
+              {seccion === 4 && <SecRadioterapia data={report} set={set} val={validation} levantadas={levantadas} onLevantarRegla={toggleLevantada} />}
+              {seccion === 5 && <SecTrasplante data={report} set={set} val={validation} levantadas={levantadas} onLevantarRegla={toggleLevantada} />}
+              {seccion === 6 && <SecPaliativos data={report} set={set} val={validation} levantadas={levantadas} onLevantarRegla={toggleLevantada} />}
+              {seccion === 7 && <SecResultado data={report} set={set} val={validation} levantadas={levantadas} onLevantarRegla={toggleLevantada} />}
             </div>
 
             {/* Navegación */}
@@ -230,6 +262,7 @@ export default function App() {
               </div>
               <div style={{ fontSize: '12px', color: '#6B7280', marginTop: '4px' }}>
                 {validation.total_errores} error(es) crítico(s) · {validation.total_advertencias} advertencia(s)
+                {levantadas.size > 0 && <span style={{ color: '#7C3AED' }}> · {levantadas.size} levantada(s)</span>}
               </div>
             </div>
 

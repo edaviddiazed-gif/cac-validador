@@ -46468,7 +46468,7 @@
     },
     "restriccion": {
       "operador": "=",
-      "valor": "--1"
+      "valor": "1"
     },
     "nivel": "ERROR",
     "mensaje": "Cuando 'cirugia.fecha_primera' es >= '2023-01-02', el campo 'cirugia.recibio_cirugia' debe ser = '--1'.",
@@ -46929,7 +46929,7 @@
     },
     "restriccion": {
       "operador": "<=",
-      "valor": "--6"
+      "valor": "6"
     },
     "nivel": "ERROR",
     "mensaje": "Cuando 'cirugia.fecha_ultima' es >= '2023-01-02', el campo 'cirugia.motivo_ultima' debe ser <= '--6'.",
@@ -46950,7 +46950,7 @@
     },
     "restriccion": {
       "operador": "<>",
-      "valor": "--98"
+      "valor": "98"
     },
     "nivel": "ERROR",
     "mensaje": "Cuando 'cirugia.fecha_ultima' es >= '2023-01-02', el campo 'cirugia.ips_ultima' debe ser <> '--98'.",
@@ -46971,7 +46971,7 @@
     },
     "restriccion": {
       "operador": "<>",
-      "valor": "--98"
+      "valor": "98"
     },
     "nivel": "ERROR",
     "mensaje": "Cuando 'cirugia.fecha_ultima' es >= '2023-01-02', el campo 'cirugia.cups_ultima' debe ser <> '--98'.",
@@ -46992,7 +46992,7 @@
     },
     "restriccion": {
       "operador": "<=",
-      "valor": "--6"
+      "valor": "6"
     },
     "nivel": "ERROR",
     "mensaje": "Cuando 'cirugia.fecha_ultima' es >= '2023-01-02', el campo 'cirugia.ubicacion_ultima' debe ser <= '--6'.",
@@ -47118,7 +47118,7 @@
     },
     "restriccion": {
       "operador": ">",
-      "valor": "--1"
+      "valor": "1"
     },
     "nivel": "ERROR",
     "mensaje": "Cuando 'cirugia.fecha_ultima' es >= '2023-01-02', el campo 'cirugia.num_cirugias' debe ser > '--1'.",
@@ -50405,7 +50405,7 @@
     },
     "restriccion": {
       "operador": "<>",
-      "valor": "--98"
+      "valor": "98"
     },
     "nivel": "ERROR",
     "mensaje": "Cuando 'radioterapia.ultimo_esquema.fecha_inicio' es >= '2023-01-02', el campo 'radioterapia.ultimo_esquema.tipo_cups' debe ser <> '--98'.",
@@ -50426,7 +50426,7 @@
     },
     "restriccion": {
       "operador": "<>",
-      "valor": "--98"
+      "valor": "98"
     },
     "nivel": "ERROR",
     "mensaje": "Cuando 'radioterapia.ultimo_esquema.fecha_inicio' es >= '2023-01-02', el campo 'radioterapia.recibio_rt' debe ser <> '--98'.",
@@ -50447,7 +50447,7 @@
     },
     "restriccion": {
       "operador": "<>",
-      "valor": "--98"
+      "valor": "98"
     },
     "nivel": "ERROR",
     "mensaje": "Cuando 'radioterapia.ultimo_esquema.fecha_inicio' es >= '2023-01-02', el campo 'radioterapia.ultimo_esquema.num_ips' debe ser <> '--98'.",
@@ -50468,7 +50468,7 @@
     },
     "restriccion": {
       "operador": "<>",
-      "valor": "--98"
+      "valor": "98"
     },
     "nivel": "ERROR",
     "mensaje": "Cuando 'radioterapia.ultimo_esquema.fecha_inicio' es >= '2023-01-02', el campo 'radioterapia.ultimo_esquema.codigo_ips1' debe ser <> '--98'.",
@@ -50510,7 +50510,7 @@
     },
     "restriccion": {
       "operador": "<>",
-      "valor": "--98"
+      "valor": "98"
     },
     "nivel": "ERROR",
     "mensaje": "Cuando 'radioterapia.ultimo_esquema.fecha_inicio' es >= '2023-01-02', el campo 'radioterapia.ultimo_esquema.caracteristicas' debe ser <> '--98'.",
@@ -51193,7 +51193,7 @@
     },
     "restriccion": {
       "operador": "<=",
-      "valor": "--3"
+      "valor": "3"
     },
     "nivel": "ERROR",
     "mensaje": "Cuando 'radioterapia.ultimo_esquema.fecha_fin' es >= '2023-01-02', el campo 'radioterapia.ultimo_esquema.caracteristicas' debe ser <= '--3'.",

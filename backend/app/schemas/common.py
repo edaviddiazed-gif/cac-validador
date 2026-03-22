@@ -17,6 +17,7 @@ class ValidationResponse(BaseModel):
     valido: bool
     total_errores: int = 0
     total_advertencias: int = 0
+    total_levantadas: int = 0
     errores_por_campo: dict = {}
     errores_generales: List[ErrorDetalle] = []
     resumen_por_seccion: dict = {}

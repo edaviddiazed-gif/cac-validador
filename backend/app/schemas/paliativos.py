@@ -32,31 +32,31 @@ class Soporte(BaseModel):
     fecha_nutricion: Optional[str] = None
     # V122
     ips_nutricion: Optional[str] = None
-    # V123_soporte - 1=enteral, 2=parenteral, 3=ambas, 4=No, 55
+    # V123 - 1=enteral, 2=parenteral, 3=ambas, 4=No, 55
     soporte_nutricional: Optional[str] = None
-    # V124_terapias - 1=Terapia física,2=lenguaje,3=ocupacional,4=pendiente,5-8=combos,98,55
+    # V124 - 1=Terapia física,2=lenguaje,3=ocupacional,4=pendiente,5-8=combos,98,55
     terapias_complementarias: Optional[str] = None
 
 
 # app/schemas/resultado.py  (se incluye aquí por comodidad)
 class ResultadoNovedades(BaseModel):
-    # V123
+    # V125
     tipo_tratamiento_corte: str
-    # V124 - 1-8, 55, 97, 98, 99
+    # V126 - 1-8, 55, 97, 98, 99
     resultado_oncologico: str
-    # V125 - 1=Vivo, 2=Fallecido, 55, 99
+    # V127 - 1=Vivo, 2=Fallecido, 55, 99
     estado_vital: str
-    # V126 - 0-19
+    # V128 - 0-19
     novedad_administrativa: str
-    # V127 - 1,3,8-12, 55
+    # V129 - 1,3,8-12, 55
     novedad_clinica: str
-    # V128
+    # V130
     fecha_desafiliacion: Optional[str] = None
-    # V129
-    fecha_muerte: Optional[str] = None
-    # V130 - 1-4, 55, 98
-    causa_muerte: Optional[str] = None
     # V131
+    fecha_muerte: Optional[str] = None
+    # V132 - 1-4, 55, 98
+    causa_muerte: Optional[str] = None
+    # V133
     codigo_bdua: Optional[str] = None
-    # V134 - debe ser 2024-01-01
-    fecha_bdua: str = "2024-01-01"
+    # V134 - fecha de corte del período
+    fecha_bdua: Optional[str] = None

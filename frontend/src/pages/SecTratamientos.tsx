@@ -3,7 +3,7 @@ import { Campo, Selector, Grid, Alerta } from '../components/Field';
 import { CAT } from '../catalogos';
 import type { CACReport, ValidationResponse, EsquemaQt } from '../types';
 
-interface Props { data: CACReport; set: (path: string, val: any) => void; val: ValidationResponse | null; }
+interface Props { data: CACReport; set: (path: string, val: any) => void; val: ValidationResponse | null; levantadas?: Set<string>; onLevantarRegla?: (id: string) => void; }
 function errs(val: ValidationResponse | null, campo: string) { return val?.errores_por_campo?.[campo] ?? []; }
 
 const esquemaVacio: EsquemaQt = {
@@ -12,9 +12,10 @@ const esquemaVacio: EsquemaQt = {
   medicamentos: [''], qt_intratecal: '2', caracteristicas: '3', motivo_finalizacion: '98',
 };
 
-function EsquemaForm({ prefix, label, esquema, set, val, mostrarMotivo }: {
+function EsquemaForm({ prefix, label, esquema, set, val, mostrarMotivo, levantadas, onLevantarRegla }: {
   prefix: string; label: string; esquema: EsquemaQt;
   set: (path: string, val: any) => void; val: ValidationResponse | null; mostrarMotivo: boolean;
+  levantadas?: Set<string>; onLevantarRegla?: (id: string) => void;
 }) {
   return (
     <div style={{ background:'#F9FAFB', border:'1px solid #E5E7EB', borderRadius:'8px', padding:'14px', marginTop:'10px' }}>
@@ -23,21 +24,23 @@ function EsquemaForm({ prefix, label, esquema, set, val, mostrarMotivo }: {
         <Selector label="Ubicación temporal" campo={`${prefix}.ubicacion_temporal`}
           variableRes={prefix.includes('primer') ? 'V48' : 'V61'} value={esquema.ubicacion_temporal}
           onChange={(v) => set(`${prefix}.ubicacion_temporal`, v)}
-          opciones={CAT.ubicacion_esquema} errores={errs(val, `${prefix}.ubicacion_temporal`)} />
+          opciones={CAT.ubicacion_esquema} errores={errs(val, `${prefix}.ubicacion_temporal`)} levantadas={levantadas} onLevantarRegla={onLevantarRegla} />
         <Campo label="Fecha inicio esquema" campo={`${prefix}.fecha_inicio`}
           variableRes={prefix.includes('primer') ? 'V49' : 'V62'} tipo="date"
           value={esquema.fecha_inicio} onChange={(v) => set(`${prefix}.fecha_inicio`, v)}
-          errores={errs(val, `${prefix}.fecha_inicio`)} />
-        <Campo label="Fecha fin esquema (1800-01-01 si en curso)" campo={`${prefix}.fecha_fin`}
+          errores={errs(val, `${prefix}.fecha_inicio`)} levantadas={levantadas} onLevantarRegla={onLevantarRegla} />
+        <Campo label="Fecha fin esquema (vacío si en curso)" campo={`${prefix}.fecha_fin`}
           variableRes={prefix.includes('primer') ? 'V58' : 'V68'}
-          value={esquema.fecha_fin} onChange={(v) => set(`${prefix}.fecha_fin`, v)}
-          errores={errs(val, `${prefix}.fecha_fin`)} />
+          tipo="date"
+          value={['1800-01-01','1845-01-01'].includes(esquema.fecha_fin) ? '' : esquema.fecha_fin}
+          onChange={(v) => set(`${prefix}.fecha_fin`, v || '1800-01-01')}
+          errores={errs(val, `${prefix}.fecha_fin`)} levantadas={levantadas} onLevantarRegla={onLevantarRegla} />
       </Grid>
       <Grid cols={3}>
         <Campo label="Código IPS 1 (REPS)" campo={`${prefix}.ips1`}
           variableRes={prefix.includes('primer') ? 'V51' : 'V63'}
           value={esquema.ips1} onChange={(v) => set(`${prefix}.ips1`, v)}
-          errores={errs(val, `${prefix}.ips1`)} />
+          errores={errs(val, `${prefix}.ips1`)} levantadas={levantadas} onLevantarRegla={onLevantarRegla} />
         <Campo label="Código IPS 2 (98 si solo 1)" campo={`${prefix}.ips2`}
           variableRes={prefix.includes('primer') ? 'V52' : 'V64'}
           value={esquema.ips2} onChange={(v) => set(`${prefix}.ips2`, v)} />
@@ -86,7 +89,7 @@ function EsquemaForm({ prefix, label, esquema, set, val, mostrarMotivo }: {
   );
 }
 
-export function SecTerapia({ data, set, val }: Props) {
+export function SecTerapia({ data, set, val, levantadas, onLevantarRegla }: Props) {
   const t = data.terapia_sistemica;
   const recibeQt = t.recibio_qt === '1';
   const tieneUltimo = !!t.ultimo_esquema;
@@ -100,7 +103,7 @@ export function SecTerapia({ data, set, val }: Props) {
           if (v === '1' && !t.primer_esquema) set('terapia_sistemica.primer_esquema', esquemaVacio);
           if (v !== '1') { set('terapia_sistemica.primer_esquema', null); set('terapia_sistemica.ultimo_esquema', null); }
         }}
-        opciones={CAT.recibio_qt} errores={errs(val,'terapia_sistemica.recibio_qt')} />
+        opciones={CAT.recibio_qt} errores={errs(val,'terapia_sistemica.recibio_qt')} levantadas={levantadas} onLevantarRegla={onLevantarRegla} />
 
       {recibeQt && (
         <>
@@ -112,7 +115,7 @@ export function SecTerapia({ data, set, val }: Props) {
 
           {t.primer_esquema && (
             <EsquemaForm prefix="terapia_sistemica.primer_esquema" label="PRIMER o ÚNICO Esquema"
-              esquema={t.primer_esquema} set={set} val={val} mostrarMotivo />
+              esquema={t.primer_esquema} set={set} val={val} mostrarMotivo levantadas={levantadas} onLevantarRegla={onLevantarRegla} />
           )}
 
           <div style={{ marginTop:'12px' }}>
@@ -125,7 +128,7 @@ export function SecTerapia({ data, set, val }: Props) {
             ) : (
               <>
                 <EsquemaForm prefix="terapia_sistemica.ultimo_esquema" label="ÚLTIMO Esquema (si diferente al primero)"
-                  esquema={t.ultimo_esquema!} set={set} val={val} mostrarMotivo />
+                  esquema={t.ultimo_esquema!} set={set} val={val} mostrarMotivo levantadas={levantadas} onLevantarRegla={onLevantarRegla} />
                 <button type="button" onClick={() => set('terapia_sistemica.ultimo_esquema', null)}
                   style={{ fontSize:'11px', marginTop:'6px', padding:'4px 10px', background:'#FEF2F2', border:'1px solid #FECACA', borderRadius:'6px', cursor:'pointer', color:'#991B1B' }}>
                   Eliminar último esquema
@@ -139,7 +142,7 @@ export function SecTerapia({ data, set, val }: Props) {
   );
 }
 
-export function SecCirugia({ data, set, val }: Props) {
+export function SecCirugia({ data, set, val, levantadas, onLevantarRegla }: Props) {
   const c = data.cirugia;
   const recibioCx = c.recibio_cirugia === '1';
   const masDeUna = parseInt(c.num_cirugias || '0') > 1;
@@ -149,7 +152,7 @@ export function SecCirugia({ data, set, val }: Props) {
       <Selector label="¿Fue sometido a cirugías oncológicas en este período?" campo="cirugia.recibio_cirugia"
         variableRes="V74" required value={c.recibio_cirugia}
         onChange={(v) => set('cirugia.recibio_cirugia', v)} opciones={CAT.recibio_cirugia}
-        errores={errs(val,'cirugia.recibio_cirugia')} />
+        errores={errs(val,'cirugia.recibio_cirugia')} levantadas={levantadas} onLevantarRegla={onLevantarRegla} />
 
       {recibioCx && (
         <>
@@ -161,12 +164,12 @@ export function SecCirugia({ data, set, val }: Props) {
             <Grid cols={3}>
               <Campo label="Fecha primera cirugía" campo="cirugia.fecha_primera"
                 variableRes="V76" tipo="date" value={c.fecha_primera}
-                onChange={(v) => set('cirugia.fecha_primera', v)} errores={errs(val,'cirugia.fecha_primera')} />
+                onChange={(v) => set('cirugia.fecha_primera', v)} errores={errs(val,'cirugia.fecha_primera')} levantadas={levantadas} onLevantarRegla={onLevantarRegla} />
               <Campo label="Código IPS primera cirugía" campo="cirugia.ips_primera"
                 variableRes="V77" value={c.ips_primera} onChange={(v) => set('cirugia.ips_primera', v)} />
               <Campo label="Código CUPS primera cirugía" campo="cirugia.cups_primera"
                 variableRes="V78" value={c.cups_primera} onChange={(v) => set('cirugia.cups_primera', v)}
-                errores={errs(val,'cirugia.cups_primera')} />
+                errores={errs(val,'cirugia.cups_primera')} levantadas={levantadas} onLevantarRegla={onLevantarRegla} />
             </Grid>
             <Grid cols={2}>
               <Selector label="Ubicación temporal" campo="cirugia.ubicacion_primera" variableRes="V79"
@@ -187,7 +190,7 @@ export function SecCirugia({ data, set, val }: Props) {
               <Grid cols={3}>
                 <Campo label="Fecha última cirugía" campo="cirugia.fecha_ultima" variableRes="V82"
                   tipo="date" value={c.fecha_ultima} onChange={(v) => set('cirugia.fecha_ultima', v)}
-                  errores={errs(val,'cirugia.fecha_ultima')} />
+                  errores={errs(val,'cirugia.fecha_ultima')} levantadas={levantadas} onLevantarRegla={onLevantarRegla} />
                 <Campo label="Código IPS última cirugía" campo="cirugia.ips_ultima" variableRes="V83"
                   value={c.ips_ultima} onChange={(v) => set('cirugia.ips_ultima', v)} />
                 <Campo label="Código CUPS última cirugía" campo="cirugia.cups_ultima" variableRes="V84"
@@ -206,7 +209,7 @@ export function SecCirugia({ data, set, val }: Props) {
   );
 }
 
-export function SecRadioterapia({ data, set, val }: Props) {
+export function SecRadioterapia({ data, set, val, levantadas, onLevantarRegla }: Props) {
   const rt = data.radioterapia;
   const recibeRt = rt.recibio_rt === '1';
 
@@ -219,7 +222,7 @@ export function SecRadioterapia({ data, set, val }: Props) {
           if (v === '1' && !rt.primer_esquema) set('radioterapia.primer_esquema', { fecha_inicio:'', ubicacion_temporal:'', tipo_rt:'', ips1:'', fecha_fin:'1800-01-01', caracteristicas:'3' });
           if (v !== '1') set('radioterapia.primer_esquema', null);
         }}
-        opciones={CAT.recibio_rt} errores={errs(val,'radioterapia.recibio_rt')} />
+        opciones={CAT.recibio_rt} errores={errs(val,'radioterapia.recibio_rt')} levantadas={levantadas} onLevantarRegla={onLevantarRegla} />
 
       {recibeRt && (
         <>
@@ -232,11 +235,11 @@ export function SecRadioterapia({ data, set, val }: Props) {
                 <Campo label="Fecha inicio RT" campo="radioterapia.primer_esquema.fecha_inicio" variableRes="V89"
                   tipo="date" value={rt.primer_esquema.fecha_inicio}
                   onChange={(v) => set('radioterapia.primer_esquema.fecha_inicio', v)}
-                  errores={errs(val,'radioterapia.primer_esquema.fecha_inicio')} />
+                  errores={errs(val,'radioterapia.primer_esquema.fecha_inicio')} levantadas={levantadas} onLevantarRegla={onLevantarRegla} />
                 <Selector label="Ubicación temporal" campo="radioterapia.primer_esquema.ubicacion_temporal" variableRes="V90"
                   value={rt.primer_esquema.ubicacion_temporal}
                   onChange={(v) => set('radioterapia.primer_esquema.ubicacion_temporal', v)}
-                  opciones={CAT.ubicacion_esquema} errores={errs(val,'radioterapia.primer_esquema.ubicacion_temporal')} />
+                  opciones={CAT.ubicacion_esquema} errores={errs(val,'radioterapia.primer_esquema.ubicacion_temporal')} levantadas={levantadas} onLevantarRegla={onLevantarRegla} />
                 <Campo label="Código CUPS tipo RT" campo="radioterapia.primer_esquema.tipo_rt" variableRes="V91"
                   value={rt.primer_esquema.tipo_rt} onChange={(v) => set('radioterapia.primer_esquema.tipo_rt', v)} />
               </Grid>
@@ -244,7 +247,7 @@ export function SecRadioterapia({ data, set, val }: Props) {
                 <Campo label="Código IPS RT" campo="radioterapia.primer_esquema.ips1" variableRes="V93"
                   value={rt.primer_esquema.ips1} onChange={(v) => set('radioterapia.primer_esquema.ips1', v)} />
                 <Campo label="Fecha fin RT (1800-01-01 si en curso)" campo="radioterapia.primer_esquema.fecha_fin" variableRes="V95"
-                  value={rt.primer_esquema.fecha_fin} onChange={(v) => set('radioterapia.primer_esquema.fecha_fin', v)} />
+                  tipo="date" value={['1800-01-01','1845-01-01'].includes(rt.primer_esquema.fecha_fin ?? '') ? '' : (rt.primer_esquema.fecha_fin ?? '')} onChange={(v) => set('radioterapia.primer_esquema.fecha_fin', v || '1800-01-01')} />
                 <Selector label="Características RT" campo="radioterapia.primer_esquema.caracteristicas" variableRes="V96"
                   value={rt.primer_esquema.caracteristicas} onChange={(v) => set('radioterapia.primer_esquema.caracteristicas', v)}
                   opciones={CAT.caracteristicas_esq} />

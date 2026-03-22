@@ -134,6 +134,54 @@ async def validar_masivo_resumen(archivo: UploadFile = File(...)):
 
 
 # ── Admin ──────────────────────────────────────────────────────────────
+# ── Configuración de cohorte / período de reporte ─────────────────────────
+
+@app.get("/admin/cohorte", tags=["admin"])
+def get_cohorte(admin: str = Depends(verificar_admin)):
+    """
+    Consulta la configuración activa del período de reporte.
+    En modo automático usa V134 del propio reporte.
+    En modo manual usa las fechas configuradas aquí.
+    """
+    from app.config_cohorte import get_cohorte
+    return get_cohorte()
+
+
+@app.post("/admin/cohorte", tags=["admin"])
+def set_cohorte(
+    fecha_corte: str,
+    fecha_inicio: Optional[str] = None,
+    descripcion: Optional[str] = None,
+    admin: str = Depends(verificar_admin),
+):
+    """
+    Configura el período de reporte manualmente.
+
+    - **fecha_corte**: último día del período, formato YYYY-MM-DD.
+      Ejemplo cohorte 2026→2027: 
+    - **fecha_inicio**: primer día del período, formato YYYY-MM-DD (opcional).
+      Si no se pasa, se calcula como fecha_corte − 1 año + 1 día.
+      Ejemplo:  si el período inicia en febrero.
+    - **descripcion**: texto libre para identificar la cohorte.
+
+    Una vez configurado, TODAS las validaciones usarán estas fechas
+    independientemente del V134 de cada reporte individual.
+    """
+    from app.config_cohorte import set_cohorte
+    try:
+        return set_cohorte(fecha_corte, fecha_inicio, descripcion)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.delete("/admin/cohorte", tags=["admin"])
+def reset_cohorte(admin: str = Depends(verificar_admin)):
+    """
+    Vuelve al modo automático: cada reporte usa su propio V134
+    como fecha de corte y calcula el inicio del período automáticamente.
+    """
+    from app.config_cohorte import reset_cohorte
+    return reset_cohorte()
 @app.post("/admin/cargar-reglas-excel", tags=["admin"])
 async def cargar_excel(
     reglas: UploadFile = File(..., description="Excel de reglas (siempre requerido)"),

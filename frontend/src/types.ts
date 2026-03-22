@@ -3,7 +3,7 @@
 export interface ErrorDetalle {
   id_regla: string;
   campo?: string;
-  nivel: 'ERROR' | 'ADVERTENCIA';
+  nivel: 'ERROR' | 'ADVERTENCIA' | 'LEVANTADA';
   mensaje: string;
   variable_res?: string;
 }
@@ -12,6 +12,7 @@ export interface ValidationResponse {
   valido: boolean;
   total_errores: number;
   total_advertencias: number;
+  total_levantadas: number;
   errores_por_campo: Record<string, ErrorDetalle[]>;
   errores_generales: ErrorDetalle[];
   resumen_por_seccion: Record<string, { criticos: number; advertencias: number }>;
@@ -74,9 +75,11 @@ export interface CACReport {
     fecha_her2: string;
     resultado_her2: string;
     estadificacion_dukes: string;
+    fecha_dukes: string;
     ann_arbor_lugano: string;
     gleason: string;
     clasificacion_riesgo: string;
+    fecha_clasificacion_riesgo: string;
     objetivo_inicial: string;
     objetivo_periodo: string;
     antecedente_otro_cancer: string;

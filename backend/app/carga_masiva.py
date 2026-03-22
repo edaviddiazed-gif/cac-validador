@@ -30,16 +30,16 @@ POSICION_A_VAR: dict[int, str] = {
     26: "V26", 27: "V27", 28: "V28", 29: "V29", 30: "V30", 31: "V31",
     32: "V32", 33: "V33", 34: "V34", 35: "V35", 36: "V36", 37: "V37",
     38: "V38", 39: "V39", 40: "V40", 41: "V41", 42: "V42", 43: "V43",
-    44: "V44", 45: "V45", 46: "V46", 47: "V46_1", 48: "V46_2",
-    49: "V46_3", 50: "V46_4", 51: "V46_5", 52: "V46_6", 53: "V46_7",
-    54: "V46_8", 55: "V47", 56: "V48", 57: "V49", 58: "V50", 59: "V51",
-    60: "V52", 61: "V53", 62: "V53_1", 63: "V53_2", 64: "V53_3",
-    65: "V53_4", 66: "V53_5", 67: "V53_6", 68: "V53_7", 69: "V53_8",
-    70: "V53_9", 71: "V54", 72: "V55", 73: "V56", 74: "V57", 75: "V58",
+    44: "V44", 45: "V45", 46: "V46", 47: "V46.1", 48: "V46.2",
+    49: "V46.3", 50: "V46.4", 51: "V46.5", 52: "V46.6", 53: "V46.7",
+    54: "V46.8", 55: "V47", 56: "V48", 57: "V49", 58: "V50", 59: "V51",
+    60: "V52", 61: "V53", 62: "V53.1", 63: "V53.2", 64: "V53.3",
+    65: "V53.4", 66: "V53.5", 67: "V53.6", 68: "V53.7", 69: "V53.8",
+    70: "V53.9", 71: "V54", 72: "V55", 73: "V56", 74: "V57", 75: "V58",
     76: "V59", 77: "V60", 78: "V61", 79: "V62", 80: "V63", 81: "V64",
-    82: "V65", 83: "V66", 84: "V66_1", 85: "V66_2", 86: "V66_3",
-    87: "V66_4", 88: "V66_5", 89: "V66_6", 90: "V66_7", 91: "V66_8",
-    92: "V66_9", 93: "V67", 94: "V68", 95: "V69", 96: "V70", 97: "V71",
+    82: "V65", 83: "V66", 84: "V66.1", 85: "V66.2", 86: "V66.3",
+    87: "V66.4", 88: "V66.5", 89: "V66.6", 90: "V66.7", 91: "V66.8",
+    92: "V66.9", 93: "V67", 94: "V68", 95: "V69", 96: "V70", 97: "V71",
     98: "V72", 99: "V73", 100: "V74", 101: "V75", 102: "V76", 103: "V77",
     104: "V78", 105: "V79", 106: "V80", 107: "V81", 108: "V82",
     109: "V83", 110: "V84", 111: "V85", 112: "V86", 113: "V87",
@@ -48,8 +48,8 @@ POSICION_A_VAR: dict[int, str] = {
     124: "V98", 125: "V99", 126: "V100", 127: "V101", 128: "V102",
     129: "V103", 130: "V104", 131: "V105", 132: "V106", 133: "V107",
     134: "V108", 135: "V109", 136: "V110", 137: "V111", 138: "V112",
-    139: "V113", 140: "V114", 141: "V114_1", 142: "V114_2", 143: "V114_3",
-    144: "V114_4", 145: "V114_5", 146: "V114_6", 147: "V115", 148: "V116",
+    139: "V113", 140: "V114", 141: "V114.1", 142: "V114.2", 143: "V114.3",
+    144: "V114.4", 145: "V114.5", 146: "V114.6", 147: "V115", 148: "V116",
     149: "V117", 150: "V118", 151: "V119", 152: "V120", 153: "V121",
     154: "V122", 155: "V123", 156: "V124", 157: "V125", 158: "V126",
     159: "V127", 160: "V128", 161: "V129", 162: "V130", 163: "V131",
@@ -63,13 +63,40 @@ VAR_A_POSICION = {v: k for k, v in POSICION_A_VAR.items()}
 from scripts.generar_catalogos import VAR_MAP
 
 
+def _normalizar_valor(val: str) -> str:
+    """
+    Normaliza un valor de celda Excel para que el validador lo procese correctamente.
+
+    Problemas que resuelve:
+    - Fechas con timestamp: '2015-04-15 00:00:00' → '2015-04-15'
+    - Enteros como float: '10.0' → '10'  (Excel guarda números como float)
+    - Espacios extra
+    """
+    v = str(val).strip()
+
+    # Fechas con timestamp de Excel (datetime como string)
+    if len(v) == 19 and v[10] == ' ' and v[11:] == '00:00:00':
+        return v[:10]
+    # También formato con T: '2015-04-15T00:00:00'
+    if len(v) == 19 and v[10] == 'T' and v[11:] == '00:00:00':
+        return v[:10]
+
+    # Enteros como float: '2.0', '98.0', '10.0'
+    if v.endswith('.0') and v[:-2].lstrip('-').isdigit():
+        return v[:-2]
+
+    return v
+
+
 def _fila_a_dict(fila: pd.Series, columnas: List[str]) -> dict:
-    """Convierte una fila del DataFrame en el dict plano {VXX: valor}."""
+    """Convierte una fila del DataFrame en el dict plano {VXX: valor} normalizado."""
     resultado = {}
     for col, val in zip(columnas, fila):
-        if pd.isna(val) or str(val).strip() == "":
+        if pd.isna(val) if not isinstance(val, str) else val.strip() == "":
             continue
-        resultado[col] = str(val).strip()
+        v = _normalizar_valor(val)
+        if v:
+            resultado[col] = v
     return resultado
 
 
@@ -169,26 +196,49 @@ def validar_malla(
         flat = _fila_a_dict(fila, columnas)
         nested = _flat_a_nested(flat)
 
-        # Añadir cabecera mínima para el schema
+        # Completar cabecera con datos de la fila
         nested.setdefault("cabecera", {})
         nested["cabecera"].setdefault("id_reporte", f"FILA_{num_fila}")
+        nested["cabecera"].setdefault("fuente", "EAPB")
+        # V134 (fecha_bdua) → también como fecha_corte de cabecera para motor de reglas
+        fecha_bdua = (nested.get("resultado") or {}).get("fecha_bdua", "")
+        if fecha_bdua:
+            nested["cabecera"].setdefault("fecha_corte", fecha_bdua)
 
         try:
             reporte = CACReport(**nested)
             resultado = ejecutar_validaciones(reporte)
-            for err in resultado.errores:
+
+            # Unificar todos los errores (generales + por campo)
+            todos = list(resultado.errores_generales) + [
+                e for lista in resultado.errores_por_campo.values() for e in lista
+            ]
+            for err in todos:
+                # Soportar tanto dict como ErrorDetalle object
+                if isinstance(err, dict):
+                    vr  = err.get("variable_res") or ""
+                    cam = err.get("campo") or ""
+                    cod = err.get("id_regla") or ""
+                    niv = err.get("nivel") or "ERROR"
+                    msg = err.get("mensaje") or ""
+                else:
+                    vr  = getattr(err, "variable_res", "") or ""
+                    cam = getattr(err, "campo", "") or ""
+                    cod = getattr(err, "id_regla", "") or ""
+                    niv = getattr(err, "nivel", "ERROR") or "ERROR"
+                    msg = getattr(err, "mensaje", "") or ""
+
                 errores_lista.append({
-                    "Fila": num_fila,
-                    "Variable": err.variable_res or "",
-                    "Campo": err.campo or "",
-                    "Valor ingresado": flat.get(err.variable_res.replace("V", "V") if err.variable_res else "", ""),
-                    "Código regla": err.id_regla or "",
-                    "Nivel": err.nivel or "ERROR",
-                    "Mensaje de error": err.mensaje or "",
+                    "Fila":             num_fila,
+                    "Variable":         vr,
+                    "Campo":            cam,
+                    "Valor ingresado":  flat.get(vr, "") if vr else "",
+                    "Código regla":     cod,
+                    "Nivel":            niv,
+                    "Mensaje de error": msg,
                 })
                 filas_con_error.add(num_fila)
-                var_key = err.variable_res or "GENERAL"
-                errores_por_var[var_key] = errores_por_var.get(var_key, 0) + 1
+                errores_por_var[vr or "GENERAL"] = errores_por_var.get(vr or "GENERAL", 0) + 1
 
         except ValidationError as ve:
             for e in ve.errors():

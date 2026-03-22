@@ -3,10 +3,10 @@ import { Campo, Selector, Grid } from '../components/Field';
 import { CAT } from '../catalogos';
 import type { CACReport, ValidationResponse } from '../types';
 
-interface Props { data: CACReport; set: (path: string, val: string) => void; val: ValidationResponse | null; }
+interface Props { data: CACReport; set: (path: string, val: string) => void; val: ValidationResponse | null; levantadas?: Set<string>; onLevantarRegla?: (id: string) => void; }
 function errs(val: ValidationResponse | null, campo: string) { return val?.errores_por_campo?.[campo] ?? []; }
 
-export function SecTrasplante({ data, set, val }: Props) {
+export function SecTrasplante({ data, set, val, levantadas, onLevantarRegla }: Props) {
   const t = data.trasplante;
   const cr = data.cirugia_reconstructiva;
   const recibeTrasplante = t.recibio_trasplante === '1';
@@ -55,7 +55,7 @@ export function SecTrasplante({ data, set, val }: Props) {
   );
 }
 
-export function SecPaliativos({ data, set, val }: Props) {
+export function SecPaliativos({ data, set, val, levantadas, onLevantarRegla }: Props) {
   const cp = data.cuidados_paliativos;
   const s = data.soporte;
   const valorado = cp.valorado === '1';
@@ -98,14 +98,14 @@ export function SecPaliativos({ data, set, val }: Props) {
       )}
 
       <Grid cols={2}>
-        <Selector label="Soporte nutricional" campo="soporte.soporte_nutricional" variableRes="V123s"
+        <Selector label="Soporte nutricional" campo="soporte.soporte_nutricional" variableRes="V123"
           value={s.soporte_nutricional || '4'} onChange={(v) => set('soporte.soporte_nutricional', v)}
           opciones={[
             {value:'1',label:'1 – Enteral'},{value:'2',label:'2 – Parenteral'},
             {value:'3',label:'3 – Enteral y parenteral'},{value:'4',label:'4 – No recibió'},
             {value:'55',label:'55 – Ente territorial'},
           ]} />
-        <Selector label="Terapias complementarias" campo="soporte.terapias_complementarias" variableRes="V124t"
+        <Selector label="Terapias complementarias" campo="soporte.terapias_complementarias" variableRes="V124"
           value={s.terapias_complementarias || '98'} onChange={(v) => set('soporte.terapias_complementarias', v)}
           opciones={[
             {value:'1',label:'1 – Terapia física'},{value:'2',label:'2 – Terapia de lenguaje'},
@@ -118,7 +118,7 @@ export function SecPaliativos({ data, set, val }: Props) {
   );
 }
 
-export function SecResultado({ data, set, val }: Props) {
+export function SecResultado({ data, set, val, levantadas, onLevantarRegla }: Props) {
   const r = data.resultado;
   const fallecido = r.estado_vital === '2';
   const desafiliado = r.novedad_administrativa === '5';
@@ -127,41 +127,41 @@ export function SecResultado({ data, set, val }: Props) {
     <div>
       <Grid cols={2}>
         <Selector label="Tipo de tratamiento a fecha de corte" campo="resultado.tipo_tratamiento_corte"
-          variableRes="V123" required value={r.tipo_tratamiento_corte}
+          variableRes="V125" required value={r.tipo_tratamiento_corte}
           onChange={(v) => set('resultado.tipo_tratamiento_corte', v)}
-          opciones={CAT.tipo_tratamiento_corte} errores={errs(val,'resultado.tipo_tratamiento_corte')} />
+          opciones={CAT.tipo_tratamiento_corte} errores={errs(val,'resultado.tipo_tratamiento_corte')} levantadas={levantadas} onLevantarRegla={onLevantarRegla} />
         <Selector label="Resultado del manejo oncológico en el corte" campo="resultado.resultado_oncologico"
-          variableRes="V124" required value={r.resultado_oncologico}
+          variableRes="V126" required value={r.resultado_oncologico}
           onChange={(v) => set('resultado.resultado_oncologico', v)}
-          opciones={CAT.resultado_oncologico} errores={errs(val,'resultado.resultado_oncologico')} />
+          opciones={CAT.resultado_oncologico} errores={errs(val,'resultado.resultado_oncologico')} levantadas={levantadas} onLevantarRegla={onLevantarRegla} />
       </Grid>
 
       <Grid cols={2}>
         <Selector label="Estado vital al finalizar el corte" campo="resultado.estado_vital"
-          variableRes="V125" required value={r.estado_vital}
+          variableRes="V127" required value={r.estado_vital}
           onChange={(v) => set('resultado.estado_vital', v)}
-          opciones={CAT.estado_vital} errores={errs(val,'resultado.estado_vital')} />
+          opciones={CAT.estado_vital} errores={errs(val,'resultado.estado_vital')} levantadas={levantadas} onLevantarRegla={onLevantarRegla} />
         <Selector label="Novedad administrativa" campo="resultado.novedad_administrativa"
-          variableRes="V126" required value={r.novedad_administrativa}
+          variableRes="V128" required value={r.novedad_administrativa}
           onChange={(v) => set('resultado.novedad_administrativa', v)}
-          opciones={CAT.novedad_administrativa} errores={errs(val,'resultado.novedad_administrativa')} />
+          opciones={CAT.novedad_administrativa} errores={errs(val,'resultado.novedad_administrativa')} levantadas={levantadas} onLevantarRegla={onLevantarRegla} />
       </Grid>
 
       <Grid cols={2}>
         <Selector label="Novedad clínica" campo="resultado.novedad_clinica"
-          variableRes="V127" required value={r.novedad_clinica}
+          variableRes="V129" required value={r.novedad_clinica}
           onChange={(v) => set('resultado.novedad_clinica', v)}
-          opciones={CAT.novedad_clinica} errores={errs(val,'resultado.novedad_clinica')} />
-        <Campo label="Código BDUA" campo="resultado.codigo_bdua" variableRes="V131"
+          opciones={CAT.novedad_clinica} errores={errs(val,'resultado.novedad_clinica')} levantadas={levantadas} onLevantarRegla={onLevantarRegla} />
+        <Campo label="Código BDUA" campo="resultado.codigo_bdua" variableRes="V133"
           value={r.codigo_bdua} onChange={(v) => set('resultado.codigo_bdua', v)} />
       </Grid>
 
       {desafiliado && (
         <Grid cols={2}>
           <Campo label="Fecha de desafiliación" campo="resultado.fecha_desafiliacion"
-            variableRes="V128" required tipo="date" value={r.fecha_desafiliacion}
+            variableRes="V130" required tipo="date" value={r.fecha_desafiliacion}
             onChange={(v) => set('resultado.fecha_desafiliacion', v)}
-            errores={errs(val,'resultado.fecha_desafiliacion')} />
+            errores={errs(val,'resultado.fecha_desafiliacion')} levantadas={levantadas} onLevantarRegla={onLevantarRegla} />
         </Grid>
       )}
 
@@ -172,25 +172,25 @@ export function SecResultado({ data, set, val }: Props) {
           </div>
           <Grid cols={2}>
             <Campo label="Fecha de muerte" campo="resultado.fecha_muerte"
-              variableRes="V129" required tipo="date" value={r.fecha_muerte === '1845-01-01' ? '' : r.fecha_muerte}
+              variableRes="V131" required tipo="date" value={r.fecha_muerte === '1845-01-01' ? '' : r.fecha_muerte}
               onChange={(v) => set('resultado.fecha_muerte', v)}
-              errores={errs(val,'resultado.fecha_muerte')} />
+              errores={errs(val,'resultado.fecha_muerte')} levantadas={levantadas} onLevantarRegla={onLevantarRegla} />
             <Selector label="Causa de muerte" campo="resultado.causa_muerte"
-              variableRes="V130" required value={r.causa_muerte}
+              variableRes="V132" required value={r.causa_muerte}
               onChange={(v) => set('resultado.causa_muerte', v)}
               opciones={CAT.causa_muerte.filter(o => o.value !== '98')}
-              errores={errs(val,'resultado.causa_muerte')} />
+              errores={errs(val,'resultado.causa_muerte')} levantadas={levantadas} onLevantarRegla={onLevantarRegla} />
           </Grid>
         </div>
       )}
 
-      <div style={{ background:'#F9FAFB', border:'1px solid #E5E7EB', borderRadius:'6px', padding:'10px 14px', marginTop:'12px' }}>
-        <div style={{ fontSize:'11px', color:'#6B7280' }}>
-          Variable 134 (BDUA fecha) — valor fijo requerido:
-        </div>
-        <div style={{ fontFamily:'monospace', fontSize:'13px', color:'#059669', fontWeight:600 }}>2024-01-01</div>
+      {/* V134 - se sincroniza automáticamente desde cabecera.fecha_corte */}
+      <div style={{ background:'#F9FAFB', border:'1px solid #E5E7EB', borderRadius:'6px', padding:'10px 14px', marginTop:'12px', fontSize:'11.5px', color:'#6B7280' }}>
+        <strong>V134 (BDUA fecha de corte):</strong> se actualiza automáticamente
+        desde la fecha de corte ingresada en la sección Identificación.
+        Valor actual: <code style={{ color:'#059669', fontWeight:600 }}>{r.fecha_bdua || '(sin fecha de corte)'}</code>
         {errs(val,'resultado.fecha_bdua').map(e => (
-          <div key={e.id_regla} style={{ fontSize:'11.5px', color:'#EF4444', marginTop:'4px' }}>✖ {e.mensaje}</div>
+          <div key={e.id_regla} style={{ color:'#EF4444', marginTop:'4px' }}>✖ {e.mensaje}</div>
         ))}
       </div>
     </div>

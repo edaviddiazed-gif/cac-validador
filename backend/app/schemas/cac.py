@@ -1,5 +1,6 @@
 # app/schemas/cac.py
 from pydantic import BaseModel
+from typing import List
 from .paciente import Paciente
 from .diagnostico import Diagnostico
 from .tratamientos import TratamientoSistemico
@@ -25,3 +26,5 @@ class CACReport(BaseModel):
     cuidados_paliativos: CuidadosPaliativos
     soporte: Soporte
     resultado: ResultadoNovedades
+    # Reglas levantadas por el usuario (lista de id_regla justificados clínicamente)
+    reglas_levantadas: List[str] = []

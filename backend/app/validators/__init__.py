@@ -59,6 +59,20 @@ def ejecutar_validaciones(reporte: CACReport) -> ValidationResponse:
     reporte_dict = reporte.model_dump()
     todos.extend(ejecutar_motor(reporte_dict))
 
+    # Filtrar reglas levantadas por el usuario (marcadas como LEVANTADA, no como ERROR)
+    levantadas = set(reporte.reglas_levantadas or [])
+    if levantadas:
+        todos_procesados = []
+        for e in todos:
+            if e.id_regla in levantadas:
+                e_dict = e.dict()
+                e_dict["nivel"] = "LEVANTADA"
+                e_dict["mensaje"] = f"[Regla levantada] {e.mensaje}"
+                todos_procesados.append(ErrorDetalle(**e_dict))
+            else:
+                todos_procesados.append(e)
+        todos = todos_procesados
+
     # Separar errores con campo de los generales
     errores_campo = [e for e in todos if e.campo]
     errores_gen   = [e for e in todos if not e.campo]
@@ -80,13 +94,15 @@ def ejecutar_validaciones(reporte: CACReport) -> ValidationResponse:
         else:
             secciones[sec]["advertencias"] += 1
 
-    criticos = sum(1 for e in todos if e.nivel == "ERROR")
+    criticos     = sum(1 for e in todos if e.nivel == "ERROR")
     advertencias = sum(1 for e in todos if e.nivel == "ADVERTENCIA")
+    levantadas_n = sum(1 for e in todos if e.nivel == "LEVANTADA")
 
     return ValidationResponse(
         valido=(criticos == 0),
         total_errores=criticos,
         total_advertencias=advertencias,
+        total_levantadas=levantadas_n,
         errores_por_campo=por_campo,
         errores_generales=[e.dict() for e in errores_gen],
         resumen_por_seccion=secciones,

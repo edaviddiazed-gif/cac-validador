@@ -19,7 +19,7 @@ class Cirugia(BaseModel):
     ips_ultima: Optional[str] = None
     cups_ultima: Optional[str] = None
     ubicacion_ultima: Optional[str] = None
-    # V86
+    # V85
     estado_vital_post_cirugia: Optional[str] = None
 
 
@@ -36,9 +36,9 @@ class EsquemaRt(BaseModel):
 
 
 class Radioterapia(BaseModel):
-    # V87
+    # V86
     recibio_rt: str = "98"
-    # V88
+    # V87
     num_sesiones: Optional[str] = None
     # Primer esquema RT V89–V97
     primer_esquema: Optional[EsquemaRt] = None

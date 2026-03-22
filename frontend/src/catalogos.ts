@@ -278,4 +278,23 @@ export const CAT: Record<string, OpcionCat[]> = {
     { value: '12', label: '12 – Fallecido o desafiliado' },
     { value: '55', label: '55 – Ente territorial' },
   ],
+
+  clasificacion_riesgo: [
+    { value: '1',  label: '1 – Estándar, bajo o favorable' },
+    { value: '2',  label: '2 – Bajo intermedio' },
+    { value: '3',  label: '3 – Intermedio' },
+    { value: '4',  label: '4 – Alto intermedio' },
+    { value: '5',  label: '5 – Alto o desfavorable' },
+    { value: '6',  label: '6 – Favorable temprano' },
+    { value: '7',  label: '7 – Desfavorable temprano' },
+    { value: '8',  label: '8 – Favorable avanzado' },
+    { value: '9',  label: '9 – Desfavorable avanzado' },
+    { value: '10', label: '10 – R1' },
+    { value: '11', label: '11 – R2' },
+    { value: '12', label: '12 – R3' },
+    { value: '13', label: '13 – R4' },
+    { value: '97', label: '97 – Otro no definido' },
+    { value: '98', label: '98 – No Aplica' },
+    { value: '99', label: '99 – Desconocido' },
+  ],
 };
