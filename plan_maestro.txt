@@ -1,0 +1,798 @@
+CAC VALIDADOR
+PLAN MAESTRO DE DESARROLLO
+Sistema de Validación y Reporte de Cáncer para la Cuenta de Alto Costo
+Resolución 0247/2014 · Medición 2023 · Next.js · Supabase · Gemma 4
+Versión 2.0 — Abril 2026
+ANÁLISIS DEL PROYECTO EXISTENTE
+Estado Actual del Repositorio (cac-validador)
+El proyecto anterior es un validador básico de archivos planos para el reporte CAC. Tras el análisis del Instructivo PDF (CAC-IEP1-I01) y el repositorio original, se identifican los siguientes gaps y oportunidades de mejora:
+Análisis del Instructivo CAC (Resolución 0247/2014)
+El instructivo define 134 variables distribuidas en 168 campos. Se identificaron las siguientes agrupaciones críticas para el motor de validación:
+Variables 1-16: Identificación EAPB y usuario (nombre, ID, fecha nacimiento, sexo, ocupación, régimen, municipio)
+Variables 17-44: Diagnóstico, estadificación y antecedentes oncológicos (CIE-10, HER2, Gleason, TNM/FIGO)
+Variables 45-73: Terapia sistémica primer y último esquema (quimioterapia, hormonoterapia, medicamentos ATC)
+Variables 74-85: Cirugía (CUPS, IPS, fechas, estado vital postquirúrgico)
+Variables 86-105: Radioterapia primer y último esquema
+Variables 106-110: Trasplante de células progenitoras hematopoyéticas
+Variables 111-124: Tratamiento complementario (reconstructiva, paliativo, nutrición, rehabilitación)
+Variables 125-134: Situación actual, novedades administrativas y clínicas, estado vital
+⚠ COMODINES CRÍTICOS: 1800-01-01 (desconocido), 1845-01-01 (No Aplica), 1846-01-01 (ente territorial). El motor debe diferenciarlos correctamente para evitar rechazos del aplicativo SISCAC.
+REGLAS CRUZADAS: La variable 128 (Novedad Administrativa) determina la lógica de validación de múltiples campos. Por ejemplo, novedad 4 (fallecido) requiere fecha de muerte (V131) y causa (V132). La variable 18 (fecha diagnóstico) debe coincidir con V24 cuando el diagnóstico es histopatológico.
+ARQUITECTURA GENERAL DEL SISTEMA
+Stack Tecnológico Definitivo
+Configuración Claude Code (everything-claude-code)
+Antes de iniciar el desarrollo, instalar el harness de productividad:
+# 1. Instalar everything-claude-code
+git clone https://github.com/affaan-m/everything-claude-code.git
+mkdir -p ~/.claude/rules
+cp -r everything-claude-code/rules/common ~/.claude/rules/
+cp -r everything-claude-code/rules/typescript ~/.claude/rules/
+cp -r everything-claude-code/rules/web ~/.claude/rules/
+# 2. Instalar como plugin en Claude Code
+/plugin marketplace add https://github.com/affaan-m/everything-claude-code
+/plugin install ecc@ecc
+# 3. Configurar MCPs para el proyecto
+# En ~/.claude/settings.json agregar:
+# - supabase MCP
+# - filesystem MCP
+# - github MCP
+# Mantener < 10 MCPs activos simultáneamente
+# 4. Crear CLAUDE.md en raíz del proyecto
+# Con contexto del dominio CAC y convenciones
+REGLA DE ORO (ECC): Usar Sonnet para 90% del código. Actualizar a Opus solo cuando: primer intento falló, tarea abarca 5+ archivos, decisiones arquitectónicas o código de seguridad crítica.
+FASE 0  •  SETUP Y ARQUITECTURA INICIAL
+👤 Rol: Arquitecto de Software + DevOps Engineer   ⏱ Duración: 3-5 días
+Objetivos
+Inicializar monorepo Next.js 15 con estructura de producción
+Configurar Supabase con esquema de base de datos para el dominio CAC
+Establecer pipeline CI/CD con Vercel + GitHub Actions
+Configurar Claude Code con ECC y CLAUDE.md del dominio
+Definir CLAUDE.md con contexto completo del proyecto para guiar el desarrollo
+Estructura del Proyecto
+cac-validador-v2/
+├── .claude/
+│   ├── CLAUDE.md              # Contexto dominio CAC para Claude Code
+│   ├── skills/
+│   │   ├── cac-variables.md   # Skill: 134 variables y sus reglas
+│   │   ├── cac-validation.md  # Skill: Motor de validación CAC
+│   │   └── cac-domain.md      # Skill: Glosario y reglas de negocio
+│   ├── agents/
+│   │   ├── cac-validator.md   # Agente validador de variables
+│   │   └── data-engineer.md   # Agente procesamiento datos
+│   └── rules/
+│       └── cac-rules.md       # Reglas específicas del proyecto
+├── app/                       # Next.js App Router
+│   ├── (auth)/                # Rutas de autenticación
+│   ├── (dashboard)/           # Panel principal
+│   │   ├── upload/            # Carga de archivos
+│   │   ├── validate/          # Validación en tiempo real
+│   │   ├── reports/           # Generación de reportes
+│   │   └── ai-assistant/      # Asistente IA
+│   └── api/                   # API Routes
+│       ├── validate/          # Endpoint validación
+│       ├── export/            # Endpoint exportación
+│       └── ai/                # Endpoint IA
+├── components/                # Componentes reutilizables
+├── lib/
+│   ├── validations/           # Motor de validación (134 vars)
+│   ├── parsers/               # Parsers archivos TXT ANSI
+│   ├── exporters/             # Exportadores PDF/Excel/TXT
+│   └── ai/                    # Clientes IA (Gemma + Claude)
+├── supabase/
+│   ├── migrations/            # Migraciones SQL
+│   ├── functions/             # Edge Functions
+│   └── seed.sql               # Datos iniciales (CIE-10, ATC, CUPS)
+└── types/
+└── cac.ts                 # Tipos TypeScript para 134 variables
+Esquema de Base de Datos Supabase
+-- Tablas principales
+CREATE TABLE eapb (
+id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+codigo VARCHAR(10) UNIQUE NOT NULL,
+nombre TEXT NOT NULL,
+regimen VARCHAR(2) CHECK (regimen IN ('C','S','P','E','N')),
+created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE TABLE reportes_cancer (
+id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+eapb_id UUID REFERENCES eapb(id),
+periodo_corte DATE NOT NULL,  -- 2023-01-01
+nombre_archivo TEXT NOT NULL,
+estado VARCHAR(20) DEFAULT 'pendiente',  -- pendiente/validando/validado/error
+total_registros INTEGER,
+registros_validos INTEGER,
+registros_con_error INTEGER,
+uploaded_at TIMESTAMPTZ DEFAULT NOW(),
+validated_at TIMESTAMPTZ,
+usuario_id UUID REFERENCES auth.users(id)
+);
+CREATE TABLE registros_cancer (
+id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+reporte_id UUID REFERENCES reportes_cancer(id) ON DELETE CASCADE,
+linea_numero INTEGER NOT NULL,
+-- Variables 1-16: Identificación
+v01_primer_nombre TEXT,
+v02_segundo_nombre TEXT,
+v03_primer_apellido TEXT,
+v04_segundo_apellido TEXT,
+v05_tipo_id VARCHAR(2),
+v06_numero_id TEXT,
+v07_fecha_nacimiento DATE,
+v08_sexo CHAR(1),
+v09_ocupacion VARCHAR(10),
+v10_regimen CHAR(1),
+v11_codigo_eapb VARCHAR(10),
+v12_pertenencia_etnica INTEGER,
+v13_grupo_poblacional INTEGER,
+v14_municipio_residencia VARCHAR(5),
+v15_telefono TEXT,
+v16_fecha_afiliacion DATE,
+-- Variables 17-44: Diagnóstico
+v17_cie10 VARCHAR(5),
+v18_fecha_diagnostico DATE,
+-- ... (134 variables total)
+v128_novedad_admin INTEGER,
+v129_novedad_clinica INTEGER,
+v134_fecha_corte DATE,
+raw_data JSONB,  -- fila completa original
+created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE TABLE errores_validacion (
+id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+registro_id UUID REFERENCES registros_cancer(id) ON DELETE CASCADE,
+variable_numero INTEGER NOT NULL,
+variable_nombre TEXT NOT NULL,
+tipo_error VARCHAR(20),  -- formato/rango/cruce/requerido
+valor_reportado TEXT,
+mensaje_error TEXT,
+sugerencia TEXT,
+created_at TIMESTAMPTZ DEFAULT NOW()
+);
+-- Tablas de referencia
+CREATE TABLE cie10_cac (codigo VARCHAR(10) PK, descripcion TEXT, agrupador TEXT);
+CREATE TABLE atc_medicamentos (codigo VARCHAR(15) PK, nombre TEXT, categoria TEXT);
+CREATE TABLE cups_procedimientos (codigo VARCHAR(10) PK, descripcion TEXT, tipo TEXT);
+CREATE TABLE divipola_municipios (codigo VARCHAR(5) PK, nombre TEXT, departamento TEXT);
+-- RLS: cada EAPB solo ve sus propios datos
+ALTER TABLE reportes_cancer ENABLE ROW LEVEL SECURITY;
+ALTER TABLE registros_cancer ENABLE ROW LEVEL SECURITY;
+🤖 PROMPT — FASE 0 — Arquitecto de Software
+Eres un Arquitecto de Software Senior especializado en Next.js 15, Supabase y aplicaciones
+SaaS de salud en Colombia. Trabajas con Claude Code usando el plugin everything-claude-code.
+CONTEXTO DEL DOMINIO:
+- Proyecto: CAC Validador v2.0 — Sistema de validación de reportes de cáncer
+- Marco legal: Resolución 0247/2014 del Ministerio de Salud Colombia
+- Entidad: Cuenta de Alto Costo (CAC) — cuentadealtocosto.org
+- Base de datos: 134 variables en 168 campos, archivos TXT ANSI separados por tabulaciones
+- Usuarios: EAPB (EPS), Direcciones Departamentales/Distritales de Salud
+- Plazo legal de reporte: 5 de mayo de 2023 (medición corte 01/01/2023)
+TAREA FASE 0:
+1. Inicializa el proyecto Next.js 15 con App Router:
+npx create-next-app@latest cac-validador-v2 --typescript --tailwind --eslint --app --src-dir --import-alias "@/*"
+2. Instala y configura el stack completo:
+- shadcn/ui (tema personalizado con colores CAC)
+- Supabase client + @supabase/ssr para Next.js
+- React Hook Form + Zod
+- Zustand + TanStack Query v5
+- next-auth v5 (beta) configurado con Supabase
+3. Crea .claude/CLAUDE.md con:
+- Descripción completa del dominio CAC
+- Las 134 variables y sus tipos de dato
+- Reglas de negocio críticas (comodines, novedades administrativas)
+- Convenciones de código del proyecto
+- Stack tecnológico y estructura de carpetas
+4. Crea supabase/migrations/001_initial_schema.sql con:
+- Todas las tablas descritas en la arquitectura
+- Índices para búsqueda por número de ID, CIE-10, EAPB
+- RLS policies para aislamiento por EAPB
+- Tablas de referencia (CIE-10 CAC, ATC, CUPS, DIVIPOLA)
+5. Configura el CI/CD:
+- GitHub Actions: lint + type-check + test en cada PR
+- Vercel: preview deployments en PRs, producción en main
+- Supabase: migrations automáticas en CI
+6. Crea el skill .claude/skills/cac-domain.md con el glosario completo del dominio.
+RESTRICCIONES:
+- Usar TypeScript estricto (strict: true)
+- No hardcodear secrets, usar .env.local con types seguros
+- Seguir naming conventions: kebab-case para archivos, PascalCase para componentes
+- Máximo 200 líneas por archivo (modularizar agresivamente)
+- Tests unitarios para toda función de validación
+Genera el código completo, migraciones SQL, configuraciones y documentación.
+FASE 1  •  MOTOR DE VALIDACIÓN CORE
+👤 Rol: Ingeniero de Datos + Backend Engineer   ⏱ Duración: 7-10 días
+Objetivos
+Implementar parser completo de archivos TXT ANSI separados por tabulaciones
+Construir motor de validación para las 134 variables con 400+ reglas
+Validaciones simples: formato, tipo, rango, valores permitidos
+Validaciones cruzadas: coherencia entre variables relacionadas
+Validaciones de negocio: comodines, novedades, reglas específicas por tipo de cáncer
+Cobertura de tests >90% para el motor de validación
+Categorías de Validación
+Arquitectura del Motor de Validación
+// lib/validations/engine.ts
+interface ValidationRule {
+variable: number;
+name: string;
+type: 'format' | 'range' | 'required' | 'cross' | 'business';
+validate: (value: string, row: CACRecord, context: ValidationContext) => ValidationResult;
+suggestion?: (value: string, row: CACRecord) => string;
+}
+interface ValidationContext {
+catalogos: {
+cie10: Set<string>;
+atc: Set<string>;
+cups: Set<string>;
+divipola: Set<string>;
+ips: Set<string>;
+};
+allRows?: CACRecord[];  // para validaciones de duplicados
+}
+// lib/validations/rules/v17-diagnostico.ts
+export const rulesV17: ValidationRule[] = [
+{
+variable: 17,
+name: 'cie10_valido',
+type: 'range',
+validate: (value, row, ctx) => {
+if (!ctx.catalogos.cie10.has(value)) {
+return { valid: false, error: 'CIE-10 no existe en catálogo CAC' };
+}
+return { valid: true };
+},
+suggestion: (value) => `Buscar en catálogo operativo CIE-10 CAC: ${value}`
+},
+{
+variable: 17,
+name: 'insitu_estadio_coherente',
+type: 'cross',
+validate: (value, row) => {
+const isInsitu = value.startsWith('D');
+const estadio = parseInt(row.v29_estadificacion);
+if (isInsitu && estadio !== 0) {
+return { valid: false, error: 'CIE-10 "D" (in situ) pero estadio ≠ 0' };
+}
+return { valid: true };
+}
+}
+];
+🤖 PROMPT — FASE 1 — Ingeniero de Datos
+Eres un Ingeniero de Datos Senior con experiencia en sistemas de salud colombianos,
+específicamente en la Resolución 0247/2014 de la Cuenta de Alto Costo (CAC).
+Trabajas con Claude Code y el plugin ECC activado.
+CONTEXTO TÉCNICO:
+Archivo de entrada: TXT ANSI, separadores tabulaciones, sin headers, extensión .txt
+Formato nombre: AAAAMMDD_CODEAPB_CANCER.txt (ej: 20230505_XXXXX0_CANCER.txt)
+Caracteres prohibidos: &, ñ, tildes (á,é,í,ó,ú), ü, #, °, ´
+Comodines de fecha: 1800-01-01, 1845-01-01, 1846-01-01
+Total variables: 134 (168 campos en el archivo)
+TAREA FASE 1A — Parser:
+Crea lib/parsers/cac-parser.ts que:
+1. Detecte y convierta encoding ANSI → UTF-8
+2. Parse línea por línea (1 línea = 1 paciente)
+3. Mapee los 168 campos a las 134 variables (algunas variables son multivariable como V46.1-V46.8)
+4. Valide el nombre del archivo contra el patrón regex
+5. Devuelva errores de parseo estructurados
+6. Maneje archivos de hasta 500MB sin bloquear el hilo principal (usar streams)
+TAREA FASE 1B — Motor de Validación:
+Implementa lib/validations/ con la siguiente estructura:
+- engine.ts: orquestador principal
+- rules/v01-v16.ts: identificación usuario
+- rules/v17-v44.ts: diagnóstico y estadificación (CRÍTICO)
+- rules/v45-v73.ts: terapia sistémica (medicamentos ATC)
+- rules/v74-v85.ts: cirugía (CUPS)
+- rules/v86-v105.ts: radioterapia
+- rules/v106-v110.ts: trasplante
+- rules/v111-v134.ts: complementario + situación actual
+- rules/cross-validations.ts: TODAS las validaciones cruzadas
+REGLAS CRÍTICAS A IMPLEMENTAR (prioridad máxima):
+1. V17↔V29: Si V17 empieza con 'D' → V29 debe ser 0
+2. V18=V24: Cuando diagnóstico es histopatológico (V21=5,9,10)
+3. V128=4: Requiere V131 (fecha muerte) y V132 (causa) no comodín
+4. V128=2: Caso nuevo → V18 NO puede ser 1800-01-01
+5. V21=7: Requiere V22 ≠ 98
+6. V45=98: Variables V46-V73 deben ser 98/97
+7. V31-V33: Solo aplican si V17 es cáncer de mama (C50x)
+8. V37: Solo aplica si V17 es cáncer de próstata (C61)
+9. Medicamentos ATC en V53.x: no deben repetirse
+10. V47 ciclos: deben ser coherentes con número de medicamentos
+VALIDACIÓN DE CODIFICACIÓN:
+- Función que detecte caracteres no permitidos y reporte posición exacta
+- Sugerencia de reemplazo (ñ→n, á→a, etc.)
+Genera 100% del código TypeScript con:
+- Tipos estrictos para todas las interfaces
+- JSDoc en funciones públicas
+- Tests Vitest para cada regla con casos válidos e inválidos
+- Mínimo 2 casos de prueba por regla (happy path + error path)
+FASE 2  •  FRONTEND — DASHBOARD Y UI
+👤 Rol: Frontend Engineer + UX Designer   ⏱ Duración: 8-12 días
+Objetivos
+Dashboard principal con métricas de validación en tiempo real
+Upload de archivos con drag & drop y progreso visual
+Tabla de errores con filtros, búsqueda y exportación
+Editor inline para corrección de registros
+Interfaz multi-EAPB con switching de contexto
+Responsive design optimizado para escritorio
+Pantallas Principales
+Componentes Críticos
+// components/validation/error-table.tsx
+// Tabla de errores con:
+// - Agrupación por variable
+// - Filtro por tipo de error
+// - Descarga CSV de errores
+// - Botón "Corregir" que abre el editor inline
+// - Badges con colores por severidad
+// components/upload/drop-zone.tsx
+// Upload con:
+// - Validación nombre archivo (regex patrón CAC)
+// - Detección encoding ANSI vs UTF-8
+// - Preview primeras 5 líneas
+// - Estimación tiempo validación según tamaño
+// components/validation/progress-live.tsx
+// Progreso con:
+// - WebSocket/Supabase Realtime
+// - Contador líneas procesadas/total
+// - Mini dashboard errores en vivo
+// components/forms/cac-record-editor.tsx
+// Editor de registro con:
+// - Formulario agrupado por secciones del instructivo
+// - Autocompletado de catálogos (CIE-10, ATC, CUPS)
+// - Validación en tiempo real de cada campo
+// - Panel lateral con descripción de la variable
+🤖 PROMPT — FASE 2 — Frontend Engineer
+Eres un Frontend Engineer Senior especializado en Next.js 15, shadcn/ui y Supabase Realtime.
+Dominas la accesibilidad WCAG 2.1 y diseño de aplicaciones de salud.
+CONTEXTO:
+- El motor de validación de Fase 1 ya está implementado en lib/validations/
+- Supabase está configurado con tablas: eapb, reportes_cancer, registros_cancer, errores_validacion
+- Los usuarios son profesionales de salud/datos de EAPB colombianas
+TAREA FASE 2A — Sistema de Diseño:
+1. Crea app/globals.css con variables CSS personalizadas del CAC:
+- Paleta: navy #1A3C5E, teal #2E7D9A, naranja CAC #E8792B
+- Tipografía: Inter para UI, JetBrains Mono para código/IDs
+2. Configura theme shadcn/ui personalizado
+3. Crea components/ui/cac-*.tsx con variantes específicas del dominio
+TAREA FASE 2B — Upload Flow:
+Implementa el flujo completo de carga:
+1. DropZone con react-dropzone:
+- Acepta solo .txt
+- Valida nombre: regex /^\d{8}_[A-Z0-9]{5,10}_CANCER\.txt$/
+- Muestra preview de las primeras 3 líneas parseadas
+2. Upload a Supabase Storage con progreso
+3. Trigger Supabase Edge Function para validación asíncrona
+4. Redirección automática a pantalla de progreso
+TAREA FASE 2C — Dashboard de Validación:
+Implementa app/(dashboard)/validate/[id]/page.tsx:
+1. Supabase Realtime subscription a tabla errores_validacion
+2. Métricas en tiempo real: total registros / con errores / porcentaje calidad
+3. Tabla de errores con columns:
+- Línea #, ID Paciente, Variable (número + nombre), Valor reportado, Error, Sugerencia
+4. Filtros: por variable, por tipo de error, solo errores críticos
+5. Botón "Exportar errores a Excel" usando SheetJS
+TAREA FASE 2D — Editor de Registros:
+Implementa el formulario de corrección inline:
+1. Agrupa las 134 variables en 8 secciones visuales (según el instructivo)
+2. Cada campo tiene:
+- Label con número de variable y descripción
+- Validación en tiempo real con Zod
+- Autocompletado para campos catálogo (CIE-10, ATC, CUPS)
+- Tooltip con descripción completa del instructivo
+3. Resalta en rojo los campos con error
+4. Botón "Guardar y revalidar" que actualiza el registro en Supabase
+RESTRICCIONES UI:
+- Solo desktop (min-width: 1024px) para la validación
+- Dark/light mode toggle
+- Loading skeletons en toda carga de datos
+- Error boundaries en cada sección
+- Turbopack para desarrollo rápido
+FASE 3  •  API, AUTENTICACIÓN Y SEGURIDAD
+👤 Rol: Backend Engineer + Security Engineer   ⏱ Duración: 5-7 días
+Objetivos
+API Routes Next.js con autenticación JWT y autorización por rol
+Sistema multi-EAPB con Row Level Security en Supabase
+Rate limiting y protección contra ataques
+Auditoría de acciones sensibles (quién subió qué archivo, cuándo)
+Middleware de validación de requests
+Roles y Permisos
+🤖 PROMPT — FASE 3 — Backend Engineer
+Eres un Backend Engineer Senior con especialización en seguridad para aplicaciones de salud.
+Conoces HIPAA y las normativas de datos de salud en Colombia (Ley 1581/2012 habeas data).
+TAREA FASE 3A — API Routes:
+Implementa app/api/ con los siguientes endpoints:
+1. POST /api/validate
+- Acepta: { reporteId: string }
+- Autenticación: Bearer token Supabase
+- Lógica: triggerea Edge Function de validación
+- Respuesta: { jobId, estimatedTime }
+2. GET /api/validate/[jobId]/status
+- Streaming response (SSE) con progreso de validación
+- Cada 500ms envía: { processed, total, errors }
+3. POST /api/export/txt
+- Acepta: { reporteId, onlyValid: boolean }
+- Genera archivo TXT ANSI con los registros
+- Headers: Content-Disposition: attachment; filename=...
+4. POST /api/export/report
+- Genera PDF resumen ejecutivo con jsPDF
+- Incluye: estadísticas, top errores, recomendaciones
+5. GET /api/catalogos/[tipo]
+- Tipos: cie10, atc, cups, divipola, ips
+- Parámetros: q (búsqueda), limit (max 50)
+- Cache: 24h con revalidación
+TAREA FASE 3B — Supabase Edge Functions:
+Implementa supabase/functions/validate-cac/index.ts:
+1. Lee el archivo TXT desde Supabase Storage
+2. Parsea con el módulo lib/parsers/cac-parser
+3. Ejecuta el motor de validación lib/validations/engine
+4. Inserta errores en tabla errores_validacion con upsert
+5. Actualiza estado del reporte en reportes_cancer
+6. Envía notificación realtime al cliente
+TAREA FASE 3C — Seguridad:
+1. Middleware Next.js que verifica JWT en rutas protegidas
+2. Rate limiting: máx 10 uploads/hora por EAPB
+3. Validación MIME type + magic bytes del archivo TXT
+4. Sanitización de nombres de archivo antes de guardar en Storage
+5. RLS policies en Supabase:
+- admin_cac: SELECT/INSERT/UPDATE en todo
+- admin_eapb: CRUD solo donde eapb_id = auth.uid()
+- operador_eapb: SELECT + INSERT, no DELETE
+6. Tabla audit_log con trigger que registra cambios en registros_cancer
+TAREA FASE 3D — Variables de Entorno:
+Genera .env.local.example con TODOS los secrets necesarios,
+con comentarios explicativos. Usa t3-env para type-safe env vars.
+FASE 4  •  EXPORTACIÓN Y GENERACIÓN DE REPORTES
+👤 Rol: Ingeniero de Software + Data Engineer   ⏱ Duración: 4-6 días
+Objetivos
+Generación de archivo TXT ANSI correcto para cargue en SISCAC
+Reportes ejecutivos PDF con estadísticas de calidad de datos
+Exportación Excel con hoja por tipo de error
+Validación del archivo generado antes de permitir descarga
+Plantillas de reportes parametrizables por EAPB
+🤖 PROMPT — FASE 4 — Ingeniero de Software
+Eres un Ingeniero de Software Senior con experiencia en generación de documentos
+y procesamiento de datos tabulares en TypeScript/Node.js.
+TAREA FASE 4A — Exportador TXT ANSI:
+Implementa lib/exporters/txt-exporter.ts:
+1. Función que toma registros de Supabase (con correcciones aplicadas)
+2. Convierte a formato TXT ANSI correcto:
+- Encoding: ANSI (Windows-1252), NO UTF-8
+- Separador: tabulación (\t), NO coma ni punto y coma
+- Sin headers en el archivo
+- Sin caracteres especiales (&,ñ,á,é,í,ó,ú,ü,#,°,´)
+- Sin espacios de relleno en campos
+3. Nombre archivo: {AAAAMMDD}_{CODEAPB}_CANCER.txt
+4. Validación final: re-parsea el archivo generado y verifica 0 errores
+5. Función de preview: muestra las primeras 5 líneas antes de descargar
+Usa la librería 'iconv-lite' para encoding ANSI correcto.
+TAREA FASE 4B — Reporte Ejecutivo PDF:
+Implementa lib/exporters/pdf-reporter.ts con jsPDF:
+Estructura del reporte:
+- Portada: Logo CAC, EAPB, período de reporte, fecha generación
+- Resumen ejecutivo: total registros, % calidad, comparativo período anterior
+- Gráfico de barras: errores por sección (diagnóstico, terapia, cirugía...)
+- Top 10 errores más frecuentes con conteo y %
+- Tabla por variable: variable, total errores, ejemplos
+- Recomendaciones automáticas basadas en patrones de errores
+- Pie de página con referencia a Resolución 0247/2014
+TAREA FASE 4C — Exportación Excel:
+Implementa lib/exporters/excel-exporter.ts con SheetJS:
+Hojas del Excel:
+1. "Resumen": métricas generales con tabla y gráficos
+2. "Todos los errores": lista plana filtrable
+3. "Por variable": pivot de errores por número de variable
+4. "Por paciente": errores agrupados por ID paciente
+5. "Registros corregidos": registros listos para subir al SISCAC
+6. "Registros con error": registros que aún necesitan corrección
+Colores:
+- Errores críticos: rojo claro (#FFE0E0)
+- Advertencias: amarillo (#FFFACD)
+- Correctos: verde claro (#E0FFE0)
+TAREA FASE 4D — API de Exportación:
+En app/api/export/:
+- Streaming response para archivos > 50MB
+- Progreso via SSE mientras se genera el archivo
+- Firma HMAC del archivo para verificar integridad
+FASE 5  •  MODELO DE NEGOCIO Y COMERCIALIZACIÓN
+👤 Rol: Product Manager + Full Stack Engineer   ⏱ Duración: 5-7 días
+Modelo de Negocio SaaS
+Características Comerciales
+Onboarding guiado con checklist paso a paso
+Trial gratuito 30 días del plan Profesional
+Facturación electrónica integrada (Colombia)
+Panel de métricas por EAPB para el equipo CAC
+Certificado de validación descargable para auditorías
+🤖 PROMPT — FASE 5 — Product Manager + Full Stack
+Eres un Product Manager con background técnico en Next.js y sistemas SaaS B2B en salud.
+Tienes experiencia en Go To Market para el sector salud colombiano.
+TAREA FASE 5A — Sistema de Planes:
+1. Crea tabla subscription_plans en Supabase:
+- planes: free, basic, professional, enterprise
+- límites almacenados en JSONB: { reportes_mes, registros_max, features: [] }
+2. Middleware que verifica límites del plan en cada operación
+3. Componente <PlanLimitGuard> que muestra upsell cuando se alcanza el límite
+4. Página de pricing (/pricing) con toggle anual/mensual
+TAREA FASE 5B — Onboarding:
+Implementa flujo de onboarding para nuevas EAPB:
+1. Wizard de 4 pasos:
+- Paso 1: Datos de la EAPB (nombre, código, régimen)
+- Paso 2: Configurar usuarios del equipo
+- Paso 3: Subir primer reporte de prueba (datos sintéticos)
+- Paso 4: Ver resultado de validación y descargar correcciones
+2. Progress indicator persistente
+3. Email de bienvenida con guía de inicio rápido
+TAREA FASE 5C — Landing Page:
+Crea app/(marketing)/ con:
+1. Página principal (/):
+- Hero: "Valida tu reporte CAC en minutos, no en días"
+- Demo animado del upload + validación
+- Testimoniales de EAPB (placeholder inicial)
+- Pricing table
+- FAQ con preguntas sobre la Resolución 0247/2014
+2. Página /docs: documentación del instructivo simplificada
+3. SEO: metadata, og:image, sitemap.xml
+4. Analytics: Posthog (privacy-friendly)
+TAREA FASE 5D — Notificaciones:
+1. Email transaccional con Resend:
+- Bienvenida + activación cuenta
+- Validación completada con resumen
+- Alertas: 5 días antes del vencimiento del plazo CAC
+- Reporte mensual de uso
+2. Notificaciones in-app con Supabase Realtime
+3. Integración opcional con Slack webhook para equipos
+FASE 6  •  TESTING, PERFORMANCE Y CALIDAD
+👤 Rol: QA Engineer + DevOps Engineer   ⏱ Duración: 5-7 días
+Estrategia de Testing
+🤖 PROMPT — FASE 6 — QA Engineer
+Eres un QA Engineer Senior especializado en aplicaciones de datos de salud.
+Conoces las trampas comunes en validación de formularios médicos.
+TAREA FASE 6A — Dataset de Prueba:
+Crea scripts/generate-test-data.ts que genere:
+1. 1000 registros con TODOS los errores posibles (uno por variable)
+2. 500 registros perfectamente válidos
+3. 100 casos edge (comodines correctos, múltiples cánceres, fallecidos+desafiliados)
+4. 50 casos que representan las inconsistencias más comunes históricamente
+TAREA FASE 6B — Tests del Motor de Validación:
+Para CADA una de las 134 variables, escribe tests que cubran:
+- Valor válido esperado
+- Valor inválido (formato incorrecto)
+- Comodín correcto (donde aplique)
+- Comodín incorrecto (donde NO aplique)
+- Validación cruzada con variable relacionada
+TAREA FASE 6C — Tests E2E con Playwright:
+Flujos críticos:
+1. Upload archivo TXT válido → ver 0 errores → descargar TXT → re-validar externamente
+2. Upload archivo con 50 errores → filtrar por variable → corregir 10 inline → revalidar → ver 40 errores
+3. Multi-EAPB: usuario EAPB-A no puede ver datos EAPB-B
+4. Plan limit: EAPB gratuita intenta subir 2do reporte → ver upsell modal
+TAREA FASE 6D — Performance:
+1. Benchmark procesamiento: 10.000 registros < 30 segundos en Edge Function
+2. UI performance: tabla 10.000 errores con virtualización (react-virtual)
+3. Test de carga: 50 EAPB simultáneas subiendo archivos (k6)
+4. Optimización: índices SQL para queries frecuentes (por eapb_id + periodo)
+FASE 7  •  ASISTENTE IA CON GEMMA 4 + CLAUDE
+👤 Rol: AI Engineer + ML Engineer   ⏱ Duración: 10-15 días
+Arquitectura del Asistente IA
+Motor Principal: Gemma 4 (26B MoE vía Ollama) para inferencia local — datos sensibles no salen del servidor. Escalamiento: Claude Sonnet 4.6 API para razonamiento complejo y casos difíciles.
+Capacidades del Asistente IA
+Autocompletado inteligente de campos del formulario basado en contexto del paciente
+Detección de inconsistencias semánticas que la validación sintáctica no captura
+Sugerencia de CIE-10 correcto dado diagnóstico en texto libre
+Asistente conversacional para preguntas sobre el instructivo CAC
+Generación automática del campo 'novedad administrativa' según reglas
+Revisión final del reporte antes del envío al SISCAC
+Fine-tuning opcional con datos históricos de la EAPB
+Arquitectura Técnica IA
+Casos de Uso IA Detallados
+// CASO 1: Sugerencia CIE-10 desde texto libre
+prompt = `
+El médico reporta: "Paciente con adenocarcinoma de colon sigmoide con metástasis hepática"
+Variables conocidas: sexo=M, edad=67, histología=adenocarcinoma
+Sugiere el CIE-10 más apropiado del catálogo CAC operativo.
+Considera: ¿reportar primario C18.7 o metástasis C78.7?
+Justifica según las reglas del instructivo CAC sección variable 17.
+Responde en JSON: { cie10: string, justificacion: string, advertencias: string[] }
+`
+// CASO 2: Validación semántica avanzada
+prompt = `
+Analiza este registro de cáncer y detecta inconsistencias semánticas:
+- V17: C50.9 (cáncer de mama NOS)
+- V08: M (masculino)
+- V29: estadio IIA
+- V31: 2 (no se realizó HER2)
+- V37: 12 (Gleason 7: 3+4) ← ERROR SEMÁNTICO
+Identifica todas las inconsistencias aunque no sean errores de formato.
+`
+// CASO 3: Chat sobre el instructivo
+user = "¿Cuándo debo reportar novedad 16 vs novedad 3?"
+context = [instructivo_v128, ejemplos_novedades, flujogrma_novedades]
+// RAG retrieval del instructivo + respuesta Gemma 4
+🤖 PROMPT — FASE 7A — AI Engineer (Setup Gemma 4)
+Eres un AI Engineer especializado en despliegue de modelos de lenguaje grandes (LLM)
+con Ollama y en integración con aplicaciones Next.js.
+CONTEXTO TÉCNICO:
+- Gemma 4 fue lanzado el 2 de abril de 2026 con licencia Apache 2.0
+- Versión recomendada: gemma4:26b (MoE, mejor relación calidad/costo)
+- Ollama API es compatible con OpenAI API (drop-in replacement)
+- Gemma 4 soporta JSON mode nativo para salidas estructuradas
+- Contexto hasta 256K tokens en versión 31B (128K en 26B)
+TAREA 7A — Infraestructura Ollama:
+1. Crea docker-compose.ollama.yml:
+- Servicio ollama con volumen persistente de modelos
+- Variables: OLLAMA_HOST, OLLAMA_MODELS, OLLAMA_ORIGINS
+- Health check endpoint
+- Opcional: GPU passthrough para NVIDIA
+2. Script scripts/setup-ollama.sh:
+ollama pull gemma4:26b          # modelo principal
+ollama pull nomic-embed-text    # embeddings para RAG
+ollama pull gemma4:e4b          # respaldo liviano
+3. Configura pgvector en Supabase:
+CREATE EXTENSION IF NOT EXISTS vector;
+CREATE TABLE cac_documents (
+id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+content TEXT NOT NULL,
+embedding vector(768),  -- nomic-embed-text dimensions
+metadata JSONB,
+source TEXT  -- 'instructivo', 'res0247', 'ejemplos'
+);
+CREATE INDEX ON cac_documents USING hnsw (embedding vector_cosine_ops);
+4. Crea lib/ai/ollama-client.ts:
+- Wrapper sobre Ollama API con tipos TypeScript
+- Función chat() con JSON mode automático
+- Función embed() para generar embeddings
+- Función retrieve() para RAG retrieval
+- Retry logic con backoff exponencial
+- Fallback automático a Claude API si Ollama no disponible
+5. Script scripts/index-instructivo.ts:
+- Lee el instructivo CAC completo (134 variables)
+- Divide en chunks semánticos por sección
+- Genera embeddings con nomic-embed-text
+- Inserta en pgvector con metadata (sección, variables, página)
+🤖 PROMPT — FASE 7B — ML Engineer (Motor IA CAC)
+Eres un ML Engineer especializado en NLP médico y en el dominio de oncología colombiana.
+Dominas Gemma 4 con Ollama y la construcción de agentes RAG con pgvector.
+TAREA 7B — Agente de Autocompletado:
+Implementa lib/ai/agents/autocomplete-agent.ts:
+1. Función suggestCIE10(diagnosticoTexto, contextoRegistro):
+- RAG: recupera ejemplos similares del instructivo
+- Prompt engineering para Gemma 4 con JSON mode
+- Filtra resultado contra catálogo CIE-10 CAC real
+- Devuelve: { cie10, descripcion, confianza, alternativas[] }
+2. Función suggestNovedad(registro):
+- Analiza estado del paciente (vivo/fallecido/desafiliado)
+- Aplica el flujograma de novedades del instructivo
+- Devuelve: { novedad, justificacion, riesgos[] }
+3. Función detectSemanticErrors(registro):
+- Analiza coherencia semántica del registro completo
+- Detecta errores que la validación sintáctica no captura
+- Ejemplos: mama bilateral sin novedad 12, Gleason en mujer, edad pediátrica con cáncer de próstata
+- Devuelve: SemanticError[] con descripción y sugerencia
+TAREA 7C — Chatbot del Instructivo:
+Implementa lib/ai/agents/cac-assistant.ts:
+Sistema RAG conversacional:
+1. Embed la pregunta del usuario
+2. Retrieve top-5 chunks relevantes del instructivo
+3. Construye prompt con contexto + historial conversación
+4. Genera respuesta con Gemma 4
+5. Cita variables/páginas del instructivo en la respuesta
+Prompt del sistema:
+"Eres un experto en la Resolución 0247/2014 de la Cuenta de Alto Costo (CAC) Colombia.
+Ayudas a profesionales de EAPB a completar correctamente el reporte de cáncer.
+Siempre cita el número de variable (V17, V128...) en tus respuestas.
+Si no estás seguro, di que consulten directamente a la CAC en cuentadealtocosto.org."
+TAREA 7D — Fine-tuning (opcional):
+Crea scripts/fine-tune/ con:
+1. scripts/generate-training-data.ts:
+- Genera 500 ejemplos input/output para fine-tuning
+- Basados en el instructivo y casos reales anonimizados
+- Formato: { instruction, input, output } para Unsloth
+2. Instrucciones de fine-tuning con LoRA adapters
+3. Proceso de evaluación del modelo fine-tuneado
+TAREA 7E — Integración UI:
+Implementa components/ai/:
+1. <AIAssistantPanel>: panel lateral con chat
+2. <FieldSuggestion>: sugerencia inline en campos del formulario
+3. <SemanticErrorBadge>: badge especial para errores semánticos IA
+4. <AIReviewButton>: botón "Revisar con IA" en el editor de registros
+5. Hook useAICompletion(): llamadas debounced a la IA mientras el usuario escribe
+FASE 8  •  GENERACIÓN AUTOMÁTICA DE REPORTES IA
+👤 Rol: AI Engineer + Data Engineer   ⏱ Duración: 7-10 días
+Capacidad Diferenciadora: Generación IA del Reporte CAC
+Esta es la fase de mayor valor comercial: la IA ayuda a CONSTRUIR el reporte, no solo a validarlo. El profesional responde preguntas en lenguaje natural y la IA genera los campos técnicos correctos.
+Flujos de Generación IA
+Modo 1 — Formulario Guiado: Wizard de preguntas en lenguaje natural → IA genera variables técnicas
+Modo 2 — Importación Historia Clínica: Extrae variables de texto libre de historia clínica
+Modo 3 — Corrección Masiva: IA sugiere correcciones para errores frecuentes en lote
+Modo 4 — Auditoría Pre-envío: Revisión final de coherencia antes de SISCAC
+🤖 PROMPT — FASE 8 — AI Engineer (Generación de Reportes)
+Eres un AI Engineer Senior con profundo conocimiento del dominio oncológico colombiano
+y experto en construcción de agentes LLM para formularios médicos complejos.
+TAREA 8A — Wizard de Registro Guiado por IA:
+Implementa el flujo: components/ai/guided-entry/
+El wizard hace preguntas en lenguaje natural y Gemma 4 traduce las respuestas a variables CAC:
+STEP 1 - Identificación:
+Pregunta: "¿Cuál es el tipo y número de documento del paciente?"
+Respuesta usuario: "Cédula de ciudadanía 1234567890"
+IA genera: { v05_tipo_id: "CC", v06_numero_id: "1234567890" }
+STEP 2 - Diagnóstico:
+Pregunta: "¿Cuál es el diagnóstico de cáncer? Puede describir en sus palabras."
+Respuesta usuario: "Paciente con cáncer de mama izquierda, triple negativo, estadio IIIA"
+IA genera: {
+v17_cie10: "C50.9",
+v27_histologia: 1,  // adenocarcinoma
+v29_estadificacion: 17,  // ec IIIA
+v31_her2_realizado: 1,
+v33_her2_resultado: 3  // + (negativo en triple negativo)
+}
+STEP 3 - Tratamiento:
+Pregunta: "¿Qué tratamiento recibió en el período de reporte?"
+Respuesta: "Quimioterapia con AC-T (doxorubicina, ciclofosfamida, paclitaxel)
+neoadyuvante, 8 ciclos, completó en noviembre 2022"
+IA genera: {
+v45_recibio_qs: 1,
+v47_num_ciclos: 8,
+v48_ubicacion_primer_esquema: 1,  // neoadyuvancia
+v53_1: "L01DB01",  // doxorubicina ATC
+v53_2: "L01AA09",  // ciclofosfamida ATC
+v53_3: "L01CD01",  // paclitaxel ATC
+v59_estado_esquema: 1  // finalizado completo
+}
+IMPLEMENTACIÓN:
+1. Diseña los ~20 pasos del wizard cubriendo todas las secciones
+2. Para cada respuesta en lenguaje natural, el prompt de Gemma 4 debe:
+- Extraer la información relevante
+- Mapear a los códigos exactos del instructivo (CIE-10, ATC, CUPS)
+- Validar coherencia con respuestas previas
+- Pedir aclaración si hay ambigüedad
+3. Al final, genera el registro JSON completo de 134 variables
+4. Muestra preview del archivo TXT que se generará
+5. Permite edición manual de cualquier campo antes de confirmar
+TAREA 8B — Extracción de Historia Clínica:
+Implementa lib/ai/extractors/clinical-note-extractor.ts:
+Input: texto libre de historia clínica (500-5000 palabras)
+Output: CACRecord parcial con campos identificados y confianza
+Prompt engineering para extracción:
+- Identifica diagnóstico → CIE-10
+- Identifica medicamentos → códigos ATC
+- Identifica procedimientos → CUPS
+- Identifica fechas → normaliza a AAAA-MM-DD
+- Identifica estadificación → mapea a opciones del instructivo
+- Marca como "requiere revisión" campos ambiguos
+TAREA 8C — Corrección Masiva IA:
+Dada una lista de errores de validación (ej: 500 registros con V17 inválido),
+Gemma 4 sugiere correcciones en lote:
+1. Agrupa errores similares (mismo tipo, misma variable)
+2. Para cada grupo, genera prompt con los valores erróneos
+3. Sugiere corrección estándar para el grupo
+4. Permite aprobar/rechazar por grupo antes de aplicar
+5. Genera diff visual de los cambios
+TAREA 8D — Informe de Auditoría IA:
+Genera automáticamente el informe de calidad del reporte:
+- Análisis de completitud por sección
+- Patrones de error que sugieren problemas sistemáticos en la EAPB
+- Comparativa con estándares de calidad del sector
+- Recomendaciones de capacitación para el equipo
+- Estimación de riesgo de inconsistencias en auditoría CAC
+ROADMAP CONSOLIDADO
+Hitos de Revenue
+Semana 5 (Fase 2 completa): Demo a 3 EAPB piloto → feedback pricing
+Semana 8 (Fase 5 completa): Lanzamiento beta con 10 EAPB → primeros ingresos
+Semana 10 (Fase 6 completa): Lanzamiento público → campaña digital
+Semana 15 (Fase 8 completa): Feature IA como upsell Premium → segunda monetización
+Configuración Claude Code para Máxima Productividad
+Instalar ECC antes del día 1: el harness de productividad optimiza tokens, reduce context rot y permite paralelizar tareas con git worktrees. Estima 2-3x más velocidad de desarrollo.
+# Comandos ECC clave para este proyecto:
+/plan                  # Planear próxima tarea antes de codear
+/tdd                   # Desarrollar con TDD (crítico para motor validación)
+/code-review           # Revisar código antes de merge
+/refactor-clean        # Limpiar código al final de cada fase
+/e2e                   # Generar tests E2E con Playwright
+# MCPs recomendados (máx 10 activos):
+- supabase: queries SQL directas, migraciones
+- filesystem: lectura/escritura archivos del proyecto
+- github: PRs, issues, code review
+- playwright: tests E2E automatizados
+- fetch: consultar docs Supabase/Next.js en tiempo real
+# Regla de paralelización con worktrees:
+# Fase 1 (motor validación) y Fase 2 (frontend) pueden desarrollarse en paralelo
+git worktree add ../cac-motor feature/validation-engine
+git worktree add ../cac-ui feature/dashboard-ui
+# Dos instancias de Claude Code trabajando simultáneamente
+CAC Validador v2.0 — Plan Maestro de Desarrollo | Confidencial
