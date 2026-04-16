@@ -1,245 +1,197 @@
-# Validador CAC — Resolución 0247 de 2023
+# Plan Maestro CAC Validador v2.0 - Referencia Rápida
 
-Sistema web completo para validar reportes de cáncer ante la Cuenta de Alto Costo (CAC) del Ministerio de Salud de Colombia, alineado con la **Resolución 0247 de 2023**.
+## 📋 Información General
+- **Proyecto**: CAC VALIDADOR v2.0
+- **Propósito**: Sistema de Validación y Reporte de Cáncer para la Cuenta de Alto Costo
+- **Marco Legal**: Resolución 0247/2014 (Ministerio de Salud Colombia)
+- **Período de Medición**: 2023
+- **Entidad**: Cuenta de Alto Costo (cuentadealtocosto.org)
+- **Plazo Legal**: 5 de mayo de 2023
+- **Versión Actual**: 2.0 (Abril 2026)
 
 ---
 
-## Estructura del proyecto
+## 🏗️ Stack Tecnológico
 
 ```
-cac-validador/
-├── backend/                    # FastAPI + Python
-│   ├── app/
-│   │   ├── main.py             # Endpoints FastAPI
-│   │   ├── schemas/            # Modelos Pydantic (134 variables)
-│   │   │   ├── cac.py          # Raíz: CACReport
-│   │   │   ├── paciente.py     # V1–V16
-│   │   │   ├── diagnostico.py  # V17–V44
-│   │   │   ├── tratamientos.py # V45–V73
-│   │   │   ├── procedimientos.py # V74–V105
-│   │   │   ├── paliativos.py   # V106–V134
-│   │   │   └── common.py       # ErrorDetalle, ValidationResponse
-│   │   └── validators/
-│   │       ├── base.py         # Formato + coherencia temporal
-│   │       ├── clinicos.py     # Coherencia clínica por tipo tumor
-│   │       └── __init__.py     # Orquestador
-│   ├── requirements.txt
-│   ├── sample_payload.json     # Caso real de prueba (mama, QT + CX)
-│   └── Dockerfile
-├── frontend/                   # React 18 + TypeScript + Vite
-│   ├── src/
-│   │   ├── App.tsx             # Layout principal + navegación
-│   │   ├── main.tsx
-│   │   ├── types.ts            # Interfaces TypeScript
-│   │   ├── catalogos.ts        # Todos los catálogos CAC
-│   │   ├── initialState.ts     # Estado vacío del formulario
-│   │   ├── components/
-│   │   │   └── Field.tsx       # Campo, Selector, Grid, Alerta
-│   │   └── pages/
-│   │       ├── SecIdentificacion.tsx  # Sección 1
-│   │       ├── SecDiagnostico.tsx     # Sección 2 (renderizado condicional)
-│   │       ├── SecTratamientos.tsx    # Secciones 3, 4, 5
-│   │       └── SecFinal.tsx           # Secciones 6, 7, 8
-│   ├── package.json
-│   ├── vite.config.ts
-│   └── Dockerfile
-└── docker-compose.yml
+Frontend:           Next.js 15 + App Router
+Base de Datos:      Supabase (PostgreSQL)
+UI Components:      shadcn/ui
+Formularios:        React Hook Form + Zod
+Estado Global:      Zustand + TanStack Query v5
+Autenticación:      next-auth v5
+IA:                 Gemma 4 + Claude
+DevOps:             Vercel + GitHub Actions
 ```
 
 ---
 
-## Inicio rápido
+## 📊 Variables CAC (134 Total)
 
-### Opción A — Docker (recomendado, sin instalar nada)
+### Agrupación por Secciones
 
-```bash
-# 1. Clonar / descomprimir el proyecto
-cd cac-validador
+| Rango | Sección | Descrición |
+|-------|---------|-----------|
+| V1-V16 | Identificación EAPB | Nombre, ID, fecha nacimiento, sexo, ocupación, régimen, municipio |
+| V17-V44 | Diagnóstico | CIE-10, HER2, Gleason, TNM/FIGO, antecedentes |
+| V45-V73 | Terapia Sistémica | Quimio, hormonoterapia, ATC, esquemas |
+| V74-V85 | Cirugía | CUPS, IPS, fechas, estado vital |
+| V86-V105 | Radioterapia | Primer/último esquema, técnicas |
+| V106-V110 | Trasplante Hematopoyético | Procedimientos especializados |
+| V111-V124 | Tratamiento Complementario | Reconstructiva, paliativo, nutrición, rehabilitación |
+| V125-V134 | Situación Actual | Novedades, estado vital, fecha corte |
 
-# 2. Levantar todo con un comando
-docker-compose up --build
+---
 
-# Backend → http://localhost:8000
-# Frontend → http://localhost:3000
-# Docs API → http://localhost:8000/docs
+## ⚠️ Comodines Críticos (Especiales)
+
+Estas fechas especiales NO son fechas reales, son códigos convencionales que el motor DEBE reconocer:
+
+- **1800-01-01** = Desconocido
+- **1845-01-01** = No Aplica
+- **1846-01-01** = Ente Territorial
+
+> ⚠️ **CRÍTICO**: El aplicativo SISCAC rechaza si no se tratan correctamente. NO se deben interpretar como fechas regulares.
+
+---
+
+## 🔗 Reglas Cruzadas Importantes
+
+### Novedad Administrativa (V128)
+La variable 128 controla la validación de múltiples campos:
+- **Novedad 4** (fallecido) → REQUIERE V131 (fecha muerte) + V132 (causa)
+- Otras novedades pueden hacer requeridas/opcionales otros campos
+
+### Fecha de Diagnóstico (V18)
+- DEBE coincidir con V24 cuando el diagnóstico es **histopatológico**
+- Validación cruzada crítica
+
+---
+
+## 📁 Estructura de Carpetas
+
 ```
-
-### Opción B — Local sin Docker
-
-**Backend:**
-```bash
-cd backend
-python -m venv venv
-source venv/bin/activate          # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
-```
-
-**Frontend:**
-```bash
-cd frontend
-npm install
-npm run dev                        # http://localhost:3000
+cac-validador-v2/
+├── .claude/                 # Contexto para Claude Code
+│   ├── CLAUDE.md           # Guía completa del dominio
+│   ├── skills/             # Habilidades específicas
+│   ├── agents/             # Agentes para tareas
+│   └── rules/              # Reglas CAC específicas
+├── app/                    # Next.js App Router
+│   ├── (auth)/            # Login, autenticación
+│   ├── (dashboard)/       # Panel principal
+│   │   ├── upload/        # Carga de archivos TXT
+│   │   ├── validate/      # Validación en tiempo real
+│   │   ├── reports/       # Reportes y análisis
+│   │   └── ai-assistant/  # Chat/asistencia IA
+│   └── api/               # Endpoints REST
+├── components/            # UI reutilizable
+├── lib/
+│   ├── validations/       # Motor de validación (134 vars)
+│   ├── parsers/           # Parsers TXT ANSI
+│   ├── exporters/         # Generadores PDF/Excel
+│   └── ai/                # Integraciones IA
+├── supabase/
+│   ├── migrations/        # SQL init + schema
+│   ├── functions/         # Edge Functions
+│   └── seed.sql           # Datos catálogos
+└── types/
+    └── cac.ts             # TypeScript para 134 vars
 ```
 
 ---
 
-## Uso del validador
+## 🗄️ Tablas Supabase
 
-### 1. Formulario web
+### Tablas Principales
 
-Abrir `http://localhost:3000` en el navegador.
+**eapb**
+- Registro de EPS/Instituciones
+- Campos: id, codigo, nombre, regimen
 
-- Navegar por las **8 secciones** usando el panel izquierdo
-- Cada campo muestra su número de variable (V18, V31, etc.) para trazabilidad con la RES 0247
-- Los campos con renderizado condicional se muestran/ocultan automáticamente:
-  - HER2 solo aparece si el CIE-10 es `C50.x` (mama)
-  - Dukes solo si es `C18/C19/C20` (colorrectal)
-  - Gleason solo si es `C61` (próstata)
-  - Ann Arbor/Lugano si es linfoma/mieloma (`C81–C90`)
-  - Fecha de muerte solo si el estado vital = `2` (fallecido)
-  - Bloque de quimioterapia solo si `recibio_qt = 1`
-- Clic en **▶ Validar Reporte** para enviar al backend
-- El panel derecho muestra el resumen por sección con semáforo de errores
-- Botón **⬇ Exportar JSON** descarga el payload del reporte
+**reportes_cancer**
+- Archivo subido + estado validación
+- Campos: id, eapb_id, archivo, estado, total_registros, validated_at
 
-### 2. API directa
+**registros_cancer**
+- Cada línea/paciente del reporte
+- Campos: v01_v134 (134 columnas), raw_data (JSONB)
 
-```bash
-# Validar un reporte
-curl -X POST http://localhost:8000/api/validar-cac \
-  -H "Content-Type: application/json" \
-  -d @backend/sample_payload.json
+**errores_validacion**
+- Detalle de errores por variable
+- Campos: variable_numero, tipo_error, valor, sugerencia
 
-# Validación batch (múltiples reportes)
-curl -X POST http://localhost:8000/api/validar-cac/batch \
-  -H "Content-Type: application/json" \
-  -d '[{...reporte1...}, {...reporte2...}]'
-
-# Cargar Excel de reglas (admin)
-curl -X POST http://localhost:8000/admin/cargar-reglas-excel \
-  -F "archivo=@Reglas_Validacion_Cancer_2023_V01.xlsx" \
-  --user cac_admin:Res247_2023!
-
-# Documentación interactiva
-open http://localhost:8000/docs
-```
+### Tablas de Referencia
+- **cie10_cac**: Diagnósticos válidos
+- **atc_medicamentos**: Medicamentos autorizados
+- **cups_procedimientos**: Procedimientos y cirugías
+- **divipola_municipios**: Municipios colombianos
 
 ---
 
-## Respuesta de la API
+## 🔐 Seguridad (Row Level Security)
 
-```json
-{
-  "valido": false,
-  "total_errores": 2,
-  "total_advertencias": 1,
-  "errores_por_campo": {
-    "diagnostico.her2_realizado": [
-      {
-        "id_regla": "R-030",
-        "campo": "diagnostico.her2_realizado",
-        "nivel": "ERROR",
-        "mensaje": "Para cáncer de mama que no es in situ, debe registrar si se realizó la prueba HER2 (variable 31).",
-        "variable_res": "V31"
-      }
-    ],
-    "resultado.fecha_muerte": [
-      {
-        "id_regla": "R-040-A",
-        "campo": "resultado.fecha_muerte",
-        "nivel": "ERROR",
-        "mensaje": "Si el usuario está fallecido, debe registrar la fecha de muerte (V129).",
-        "variable_res": "V129"
-      }
-    ]
-  },
-  "errores_generales": [],
-  "resumen_por_seccion": {
-    "diagnostico": { "criticos": 1, "advertencias": 0 },
-    "resultado":   { "criticos": 1, "advertencias": 1 }
-  }
-}
-```
+- **Principio**: Cada EAPB ve SOLO sus datos
+- **Tablas con RLS**: reportes_cancer, registros_cancer
+- **Autenticación**: next-auth v5 → Supabase Auth
 
 ---
 
-## Reglas de validación implementadas
+## 📝 Formatos de Archivo
 
-| ID Regla | Variables | Tipo | Descripción |
-|----------|-----------|------|-------------|
-| OBL-V1…V42 | Múltiples | Obligatoriedad | 20 campos siempre obligatorios |
-| FMT-V7…V129 | Fechas | Formato | AAAA-MM-DD o fecha especial válida |
-| R-020 | V18 vs V7 | Temporal | Diagnóstico ≥ nacimiento |
-| R-021 | V19 vs V20 | Temporal | Remisión ≤ ingreso IPS |
-| R-022 | V23 vs V24 | Temporal | Muestra ≤ informe histo |
-| R-023 | V49 vs V18 | Temporal | Inicio QT ≥ diagnóstico |
-| R-024 | V58 vs V49 | Temporal | Fin QT ≥ inicio QT |
-| R-025 | V76 vs V18 | Temporal | Cirugía ≥ diagnóstico |
-| R-026 | V82 vs V76 | Temporal | Última CX ≥ primera CX |
-| R-027 | V89 vs V18 | Temporal | RT ≥ diagnóstico |
-| R-028 | V129 vs V7/V18 | Temporal | Muerte ≥ nacimiento y diagnóstico |
-| R-030 | V17→V31 | Clínica | Mama → HER2 obligatorio |
-| R-031 | V17→V34 | Clínica | Colorrectal → Dukes obligatorio |
-| R-032 | V17→V37 | Clínica | Próstata → Gleason obligatorio |
-| R-033 | V17→V36 | Clínica | Linfoma/mieloma → Ann Arbor |
-| R-034 | V21=7→V22 | Dependencia | Sin histo → motivo obligatorio |
-| R-035 | V45=1→V49 | Dependencia | QT=Sí → fecha inicio esquema |
-| R-036 | V45=1→V51 | Dependencia | QT=Sí → IPS obligatoria |
-| R-037 | V74=1→V78 | Dependencia | CX=Sí → CUPS obligatorio |
-| R-038 | V87=1→V89 | Dependencia | RT=Sí → esquema obligatorio |
-| R-040 | V125=2→V129/V130 | Dependencia | Fallecido → fecha + causa muerte |
-| R-041 | V126=5→V128 | Dependencia | Desafiliado → fecha desafiliación |
-| R-042 | V125≠2→V129 | Lógica | Vivo no debe tener fecha de muerte |
-| R-050 | V21≠7→V22 | Lógica | Con histo → motivo debe ser 98 |
-| R-051 | V21=7→V23 | Lógica | Sin histo → fecha muestra = 1845 |
-| R-052 | V17 hematológico→V29 | Clínica | Hematolinfático → TNM = 98 |
-| R-055 | V134 | Rango | Fecha BDUA fija = 2024-01-01 |
-| R-060 | V18 vs fecha_corte | Advertencia | Diagnóstico no puede ser futuro |
+**Entrada (INPUT)**
+- Formato: TXT ANSI
+- Separador: Tabulaciones
+- Codificación: ANSI (Latin-1)
+- Estructura: Cabecera + N registros (pacientes)
+
+**Salida (OUTPUT)**
+- Reporte de validación (JSON, PDF, Excel)
+- Detalles de errores por variable
+- Sugerencias de corrección
 
 ---
 
-## Códigos y fechas especiales
+## 🎯 Usuarios Objetivo
 
-| Código | Significado |
-|--------|-------------|
-| `55` | Persona asegurada atendida por ente territorial |
-| `98` | No aplica (según condición clínica) |
-| `99` | Desconocido (no está en soportes clínicos) |
-| `97` | No aplica — variante específica |
-| `1800-01-01` | Fecha desconocida |
-| `1845-01-01` | Fecha no aplica |
-| `1846-01-01` | Ente territorial (equivalente a 55 en fechas) |
-| `1840-01-01` | No aplica — cáncer mama in situ (HER2) |
+- **EAPB** (EPS - Entidades Promotoras de Salud)
+- **Direcciones Departamentales de Salud**
+- **Direcciones Distritales de Salud**
+- **Usuarios administrativos/clínicos de instituciones**
 
 ---
 
-## Agregar nuevas reglas de validación
+## 📌 Restricciones de Desarrollo
 
-Editar `backend/app/validators/clinicos.py` y agregar una función con el patrón:
-
-```python
-def validar_mi_nueva_regla(r: CACReport) -> List[ErrorDetalle]:
-    errores = []
-    if <condición>:
-        _err(errores, "R-XXX", "campo.ruta", "Mensaje en español.", variable_res="VXX")
-    return errores
-```
-
-Luego registrarla en `backend/app/validators/__init__.py`:
-
-```python
-todos.extend(validar_mi_nueva_regla(reporte))
-```
+✅ TypeScript estricto (strict: true)
+✅ Máximo 200 líneas por archivo
+✅ Naming: kebab-case archivos, PascalCase componentes
+✅ Tests unitarios para validaciones
+✅ No hardcodear secrets (.env.local)
 
 ---
 
-## Credenciales admin por defecto
+## ⚡ Regla de Oro Claude Code
 
-```
-Usuario: cac_admin
-Contraseña: Res247_2023!
-```
+> Usar **Sonnet** para 90% del código.
+> Usar **Opus** SOLO cuando:
+> - Primer intento falló
+> - Tarea > 5 archivos
+> - Decisiones arquitectónicas
+> - Código de seguridad crítica
 
-Cambiar en `docker-compose.yml` → variables de entorno `ADMIN_USER` / `ADMIN_PASS`.
-"# cac-validador"  
+Mantener < 10 MCPs simultáneamente activos.
+
+---
+
+## 📋 Checklist FASE 0
+
+- [ ] Next.js 15 + App Router inicializado
+- [ ] Supabase configurado + schema SQL
+- [ ] CI/CD (GitHub Actions + Vercel)
+- [ ] Claude Code + ECC configurado
+- [ ] .claude/CLAUDE.md completado
+- [ ] Tablas de referencia pobladas (CIE-10, ATC, CUPS, DIVIPOLA)
+- [ ] RLS policies activas
+- [ ] Tests unitarios base creados
+

@@ -1,0 +1,228 @@
+{
+  "proyecto": {
+    "nombre": "CAC VALIDADOR",
+    "version": "2.0",
+    "fecha": "Abril 2026",
+    "descripcion": "Sistema de Validación y Reporte de Cáncer para la Cuenta de Alto Costo",
+    "resolucion": "Resolución 0247/2014",
+    "medicion": "2023",
+    "stack": ["Next.js", "Supabase", "Gemma 4"]
+  },
+
+  "analisis": {
+    "instructivo_cac": {
+      "total_variables": 134,
+      "total_campos": 168,
+      "agrupaciones": {
+        "v1_16": {
+          "nombre": "Identificación EAPB y usuario",
+          "campos": ["nombre", "ID", "fecha_nacimiento", "sexo", "ocupacion", "regimen", "municipio"]
+        },
+        "v17_44": {
+          "nombre": "Diagnóstico y antecedentes oncológicos",
+          "campos": ["CIE-10", "HER2", "Gleason", "TNM/FIGO"]
+        },
+        "v45_73": {
+          "nombre": "Terapia sistémica",
+          "campos": ["primer_esquema", "ultimo_esquema", "quimioterapia", "hormonoterapia", "medicamentos_ATC"]
+        },
+        "v74_85": {
+          "nombre": "Cirugía",
+          "campos": ["CUPS", "IPS", "fechas", "estado_vital_postquirurgico"]
+        },
+        "v86_105": {
+          "nombre": "Radioterapia",
+          "campos": ["primer_esquema", "ultimo_esquema"]
+        },
+        "v106_110": {
+          "nombre": "Trasplante de células progenitoras hematopoyéticas",
+          "campos": []
+        },
+        "v111_124": {
+          "nombre": "Tratamiento complementario",
+          "campos": ["reconstructiva", "paliativo", "nutricion", "rehabilitacion"]
+        },
+        "v125_134": {
+          "nombre": "Situación actual",
+          "campos": ["novedades_administrativas", "novedades_clinicas", "estado_vital"]
+        }
+      }
+    },
+    "comodines_criticos": {
+      "desconocido": "1800-01-01",
+      "no_aplica": "1845-01-01",
+      "ente_territorial": "1846-01-01",
+      "advertencia": "El motor debe diferenciarlos correctamente para evitar rechazos del aplicativo SISCAC"
+    },
+    "reglas_cruzadas": {
+      "variable_128": {
+        "nombre": "Novedad Administrativa",
+        "descripcion": "Determina la lógica de validación de múltiples campos",
+        "ejemplo": "novedad 4 (fallecido) requiere fecha_de_muerte (V131) y causa (V132)"
+      },
+      "variable_18": {
+        "nombre": "Fecha Diagnóstico",
+        "regla": "Debe coincidir con V24 cuando diagnóstico es histopatológico"
+      }
+    }
+  },
+
+  "stack_tecnologico": {
+    "frontend": "Next.js 15 + App Router",
+    "base_datos": "Supabase (PostgreSQL)",
+    "ui": "shadcn/ui",
+    "formularios": "React Hook Form + Zod",
+    "estado_global": "Zustand + TanStack Query v5",
+    "autenticacion": "next-auth v5",
+    "ia": ["Gemma 4", "Claude"],
+    "devops": ["Vercel", "GitHub Actions"],
+    "regla_oro": "Usar Sonnet para 90% del código. Actualizar a Opus solo cuando: primer intento falló, tarea abarca 5+ archivos, decisiones arquitectónicas o código de seguridad crítica"
+  },
+
+  "setup_inicial": {
+    "paso_1": "Instalar everything-claude-code",
+    "paso_2": "Instalar como plugin en Claude Code",
+    "paso_3": "Configurar MCPs",
+    "paso_4": "Crear CLAUDE.md en raíz",
+    "restriccion": "Mantener < 10 MCPs activos simultáneamente"
+  },
+
+  "fases": {
+    "fase_0": {
+      "nombre": "SETUP Y ARQUITECTURA INICIAL",
+      "rol": "Arquitecto de Software + DevOps Engineer",
+      "duracion_dias": "3-5",
+      "objetivos": [
+        "Inicializar monorepo Next.js 15",
+        "Configurar Supabase con esquema CAC",
+        "Establecer pipeline CI/CD",
+        "Configurar Claude Code con ECC",
+        "Definir CLAUDE.md"
+      ]
+    }
+  },
+
+  "estructura_proyecto": {
+    "raiz": {
+      ".claude": {
+        "CLAUDE.md": "Contexto dominio CAC",
+        "skills": {
+          "cac-variables.md": "134 variables y reglas",
+          "cac-validation.md": "Motor de validación",
+          "cac-domain.md": "Glosario y reglas negocio"
+        },
+        "agents": {
+          "cac-validator.md": "Agente validador",
+          "data-engineer.md": "Procesamiento datos"
+        },
+        "rules": {
+          "cac-rules.md": "Reglas específicas"
+        }
+      },
+      "app": {
+        "auth": "Rutas de autenticación",
+        "dashboard": {
+          "upload": "Carga de archivos",
+          "validate": "Validación en tiempo real",
+          "reports": "Generación de reportes",
+          "ai-assistant": "Asistente IA"
+        },
+        "api": {
+          "validate": "Endpoint validación",
+          "export": "Endpoint exportación",
+          "ai": "Endpoint IA"
+        }
+      },
+      "components": "Componentes reutilizables",
+      "lib": {
+        "validations": "Motor validación (134 vars)",
+        "parsers": "Parsers TXT ANSI",
+        "exporters": "PDF/Excel/TXT",
+        "ai": "Clientes IA"
+      },
+      "supabase": {
+        "migrations": "Migraciones SQL",
+        "functions": "Edge Functions",
+        "seed.sql": "CIE-10, ATC, CUPS"
+      },
+      "types": {
+        "cac.ts": "Tipos TypeScript 134 vars"
+      }
+    }
+  },
+
+  "base_datos": {
+    "tablas_principales": {
+      "eapb": {
+        "id": "UUID PK",
+        "codigo": "VARCHAR(10) UNIQUE NOT NULL",
+        "nombre": "TEXT NOT NULL",
+        "regimen": "VARCHAR(2) - C,S,P,E,N",
+        "created_at": "TIMESTAMPTZ"
+      },
+      "reportes_cancer": {
+        "id": "UUID PK",
+        "eapb_id": "UUID FK",
+        "periodo_corte": "DATE",
+        "nombre_archivo": "TEXT",
+        "estado": "VARCHAR(20) - pendiente/validando/validado/error",
+        "total_registros": "INTEGER",
+        "registros_validos": "INTEGER",
+        "registros_con_error": "INTEGER",
+        "uploaded_at": "TIMESTAMPTZ",
+        "validated_at": "TIMESTAMPTZ",
+        "usuario_id": "UUID FK"
+      },
+      "registros_cancer": {
+        "id": "UUID PK",
+        "reporte_id": "UUID FK",
+        "linea_numero": "INTEGER",
+        "v01_v134": "134 variables individuales",
+        "raw_data": "JSONB",
+        "created_at": "TIMESTAMPTZ"
+      },
+      "errores_validacion": {
+        "id": "UUID PK",
+        "registro_id": "UUID FK",
+        "variable_numero": "INTEGER",
+        "variable_nombre": "TEXT",
+        "tipo_error": "VARCHAR(20) - formato/rango/cruce/requerido",
+        "valor_reportado": "TEXT",
+        "mensaje_error": "TEXT",
+        "sugerencia": "TEXT",
+        "created_at": "TIMESTAMPTZ"
+      }
+    },
+    "tablas_referencia": {
+      "cie10_cac": ["codigo VARCHAR(10) PK", "descripcion TEXT", "agrupador TEXT"],
+      "atc_medicamentos": ["codigo VARCHAR(15) PK", "nombre TEXT", "categoria TEXT"],
+      "cups_procedimientos": ["codigo VARCHAR(10) PK", "descripcion TEXT", "tipo TEXT"],
+      "divipola_municipios": ["codigo VARCHAR(5) PK", "nombre TEXT", "departamento TEXT"]
+    },
+    "seguridad": {
+      "rls_activos": ["reportes_cancer", "registros_cancer"],
+      "principio": "Cada EAPB solo ve sus propios datos"
+    }
+  },
+
+  "restricciones_desarrollo": [
+    "TypeScript estricto (strict: true)",
+    "No hardcodear secrets, usar .env.local con types seguros",
+    "Naming: kebab-case archivos, PascalCase componentes",
+    "Máximo 200 líneas por archivo",
+    "Tests unitarios para toda función validación"
+  ],
+
+  "usuarios_objetivo": {
+    "eapb": "EPS",
+    "instituciones": "Direcciones Departamentales/Distritales de Salud"
+  },
+
+  "contexto_legal": {
+    "resolucion": "0247/2014 Ministerio de Salud Colombia",
+    "entidad": "Cuenta de Alto Costo",
+    "web": "cuentadealtocosto.org",
+    "plazo_legal_reporte": "2023-05-05",
+    "medicion_corte": "2023-01-01"
+  }
+}
