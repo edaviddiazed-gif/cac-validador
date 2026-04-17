@@ -14,6 +14,7 @@ export async function updateSession(request: NextRequest) {
   if (!supabaseUrl || !supabaseAnonKey) {
     console.warn(
       "Supabase env vars missing: NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY. Skipping Supabase middleware.",
+      { hasUrl: Boolean(supabaseUrl), hasAnon: Boolean(supabaseAnonKey) }
     );
     return supabaseResponse;
   }

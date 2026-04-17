@@ -1,10 +1,51 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CheckCircle } from "lucide-react";
-import Link from "next/link";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { CheckCircle, AlertCircle } from "lucide-react";
+import { createBrowserClient } from "@supabase/ssr";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (authError) {
+        setError(authError.message || "Error al iniciar sesión");
+        setLoading(false);
+        return;
+      }
+
+      // Login exitoso
+      router.push("/dashboard");
+    } catch (err) {
+      setError("Error inesperado al iniciar sesión");
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-background to-cac-navy/5 p-4">
       <Card className="w-full max-w-md">
@@ -18,7 +59,13 @@ export default function LoginPage() {
           </p>
         </CardHeader>
         <CardContent>
-          <form className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-4">
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium">
                 Correo electrónico
@@ -27,6 +74,10 @@ export default function LoginPage() {
                 id="email"
                 type="email"
                 placeholder="usuario@eapb.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
+                required
               />
             </div>
             <div className="space-y-2">
@@ -37,13 +88,15 @@ export default function LoginPage() {
                 id="password"
                 type="password"
                 placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
+                required
               />
             </div>
-            <Link href="/dashboard">
-              <Button className="w-full" type="button">
-                Iniciar sesión
-              </Button>
-            </Link>
+            <Button className="w-full" type="submit" disabled={loading}>
+              {loading ? "Iniciando sesión..." : "Iniciar sesión"}
+            </Button>
             <p className="text-center text-xs text-muted-foreground">
               Resolución 0247/2014 · Cuenta de Alto Costo
             </p>

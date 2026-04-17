@@ -90,10 +90,14 @@ export function DashboardSidebar() {
 
       {/* Mobile sheet */}
       <Sheet>
-        <SheetTrigger asChild>
-          <Button variant="ghost" size="icon" className="lg:hidden fixed top-3 left-3 z-50">
+        <SheetTrigger>
+          <div
+            role="button"
+            tabIndex={0}
+            className="lg:hidden fixed top-3 left-3 z-50 group/button inline-flex shrink-0 items-center justify-center rounded-lg text-sm"
+          >
             <Menu className="h-5 w-5" />
-          </Button>
+          </div>
         </SheetTrigger>
         <SheetContent side="left" className="w-64 p-0">
           <SidebarContent />
