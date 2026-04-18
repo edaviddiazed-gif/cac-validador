@@ -1,33 +1,43 @@
 # app/validators/motor_reglas.py
 """
-Motor de reglas dinámico.
-Lee reglas.json (generado desde el Excel) y las ejecuta sobre el reporte CAC.
+Motor de reglas CAC — Versión corregida.
+========================================
+Cambios respecto a la versión anterior (v1_legacy):
 
-FECHAS DINÁMICAS (relativas a la fecha de corte)
-================================================
-El Excel tiene fechas hardcodeadas para la cohorte 2023→2024 (base 2024-01-01).
-Este motor las traduce en tiempo de ejecución, permitiendo validar cualquier
-cohorte futura sin cambios de código.
+  FIX-01  Agrupamiento Y/O corregido: agrupa por (id, campo) en lugar de
+          solo (id). Evitaba que reglas de distintas variables con el mismo
+          código de error se mezclaran en un único grupo OR/AND.
 
-Las 9 fechas dinámicas y su offset respecto a la fecha de corte:
+  FIX-02  Integración con expansion.py: antes de evaluar reglas, se calculan
+          los campos activos del registro. Campos fuera de ese conjunto se
+          omiten → elimina falsos positivos en V53.x / V66.x / V46.x / V114.x.
 
-  Excel base   │ Fórmula           │ Ejemplo cohorte 2026→2027
-  ─────────────┼───────────────────┼───────────────────────────
+  FIX-03  Campos malformados resueltos: las 4 reglas DEFINICION con paths
+          "V1.0", "V2.0", "V3.0", "V12.0" ahora se resuelven correctamente
+          contra VAR_MAP antes de escribir reglas.json.
+
+  FIX-04  V113 → cuidados_paliativos.valorado correctamente mapeado,
+          activando V114.1–V114.6 cuando corresponde.
+
+  FIX-05  _resolver_variable ahora soporta None limpiamente sin crash
+          cuando el valor de referencia es una fecha centinela.
+
+FECHAS DINÁMICAS (relativas a la fecha de corte V134)
+======================================================
+El Excel base es cohorte 2023 → corte 2024-01-01.
+El motor traduce en tiempo real para cualquier cohorte futura.
+
+  Excel base   │ Fórmula           │ Ejemplo 2026→2027
+  ─────────────┼───────────────────┼─────────────────────
   2024-01-01   │ fecha_corte       │ 2027-01-01
   2023-01-01   │ fecha_corte − 1a  │ 2026-01-01
-  2023-01-02   │ fecha_corte −1a+1d│ 2026-01-02  ← inicio automático
-  2023-11-01   │ fecha_corte − 2m  │ 2026-11-01  (umbral dx recientes)
-  2021-01-01   │ fecha_corte − 3a  │ 2024-01-01  (ventana fallecidos)
-  2021-01-02   │ fecha_corte −3a+1d│ 2024-01-02  (ventana cirugía/RT)
-  2017-01-01   │ fecha_corte − 7a  │ 2020-01-01  (umbral histórico remisión)
-  2005-01-01   │ fecha_corte − 19a │ 2008-01-01  (mayoría de edad CC)
-  2004-01-01   │ fecha_corte − 20a │ 2007-01-01  (umbral pediátrico CIE-10)
-
-NOTA sobre 2023-01-01 vs fecha_inicio configurable:
-  La fecha 2023-01-01 del Excel (inicio del período) puede ser sobreescrita
-  por la fecha_inicio configurada en config_cohorte.py. Esto permite ajustar
-  el período exacto de reporte (ej: si el período inicia el 2026-02-02 en
-  lugar del 2026-01-02 automático).
+  2023-01-02   │ fecha_corte −1a+1d│ 2026-01-02  ← inicio
+  2023-11-01   │ fecha_corte − 2m  │ 2026-11-01
+  2021-01-01   │ fecha_corte − 3a  │ 2024-01-01
+  2021-01-02   │ fecha_corte −3a+1d│ 2024-01-02
+  2017-01-01   │ fecha_corte − 7a  │ 2020-01-01
+  2005-01-01   │ fecha_corte − 19a │ 2008-01-01
+  2004-01-01   │ fecha_corte − 20a │ 2007-01-01
 
 Fechas FIJAS (nunca se traducen):
   1800-01-01  → Comodín: Desconocido
@@ -39,27 +49,31 @@ Fechas FIJAS (nunca se traducen):
 """
 
 import json
+import re
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set
+
 from dateutil.relativedelta import relativedelta
 
 from app.schemas.common import ErrorDetalle, FECHAS_ESPECIALES
+from app.validators.expansion import expandir_campos_activos, diagnosticar_grupos
 
+# ── Rutas y caché ─────────────────────────────────────────────────────────
 _REGLAS_PATH = Path(__file__).parent.parent / "reglas.json"
 _REGLAS_CACHE: Optional[List[dict]] = None
 
-# ── Cohorte de referencia del Excel (2023 → corte 2024-01-01) ─────────────
+# Cohorte base del Excel (2023 → corte 2024-01-01)
 _COHORTE_BASE = date(2024, 1, 1)
 
 # Fechas que NUNCA se traducen — comodines semánticos y límites del SGSSS
 _FECHAS_FIJAS = {
-    "1800-01-01",  # Comodín: Desconocido
-    "1840-01-01",  # Comodín: No aplica (mama in situ)
-    "1845-01-01",  # Comodín: No aplica
-    "1846-01-01",  # Comodín: PPNA / ente territorial
-    "1900-01-01",  # Límite inferior fecha nacimiento
-    "1993-01-01",  # Creación del SGSSS Colombia
+    "1800-01-01",
+    "1840-01-01",
+    "1845-01-01",
+    "1846-01-01",
+    "1900-01-01",
+    "1993-01-01",
 }
 
 
@@ -75,71 +89,46 @@ def _cargar_reglas() -> List[dict]:
 
 
 def recargar_reglas():
-    """Fuerza recarga del caché de reglas (útil tras regenerar reglas.json)."""
+    """Fuerza recarga del caché tras regenerar reglas.json."""
     global _REGLAS_CACHE
     _REGLAS_CACHE = None
 
 
-# ─── Calendario dinámico de la cohorte ────────────────────────────────────
+# ─── Calendario dinámico de la cohorte ───────────────────────────────────
 
 def _fechas_cohorte(fecha_corte: date, fecha_inicio: Optional[date] = None) -> Dict[str, str]:
     """
     Construye el mapa {fecha_excel_base → fecha_real} para la cohorte activa.
-
-    Parámetros:
-      fecha_corte:  fecha de corte efectiva (V134 o la configurada manualmente)
-      fecha_inicio: fecha de inicio del período (configurable por el admin).
-                    Si es None se calcula como fecha_corte − 1 año + 1 día.
-
-    Las 9 fechas dinámicas se mapean usando sus offsets fijos respecto a la
-    fecha de corte. La fecha de inicio (2023-01-02 en la base) puede ser
-    sobreescrita por el valor configurado en config_cohorte.
+    fecha_inicio: si None, se calcula como fecha_corte − 1 año + 1 día.
     """
     fc   = fecha_corte
-    base = _COHORTE_BASE  # 2024-01-01
+    base = _COHORTE_BASE
 
     def fmt(d: date) -> str:
         return d.strftime("%Y-%m-%d")
 
-    # Fecha de inicio del período:
-    # - Si el admin configuró una → usarla
-    # - Si no → fecha_corte − 1 año + 1 día (igual que el Excel base)
     fi = fecha_inicio if fecha_inicio else (fc - relativedelta(years=1) + timedelta(days=1))
 
-    mapa = {
-        # Fecha de corte (fin del período)
-        fmt(base):                                                fmt(fc),
-        # Inicio del período − 1 año (2023-01-01 en la base)
-        fmt(base - relativedelta(years=1)):                       fmt(fc - relativedelta(years=1)),
-        # Inicio del período configurable (2023-01-02 en la base)
-        fmt(base - relativedelta(years=1) + timedelta(days=1)):   fmt(fi),
-        # Umbral diagnósticos recientes (fc − 2 meses)
-        fmt(base - relativedelta(months=2)):                      fmt(fc - relativedelta(months=2)),
-        # Ventana fallecidos / tratamientos (fc − 3 años)
-        fmt(base - relativedelta(years=3)):                       fmt(fc - relativedelta(years=3)),
-        # Ventana + 1 día
-        fmt(base - relativedelta(years=3) + timedelta(days=1)):   fmt(fc - relativedelta(years=3) + timedelta(days=1)),
-        # Umbral histórico remisión (fc − 7 años)
-        fmt(base - relativedelta(years=7)):                       fmt(fc - relativedelta(years=7)),
-        # Mayoría de edad CC (fc − 19 años)
-        fmt(base - relativedelta(years=19)):                      fmt(fc - relativedelta(years=19)),
-        # Umbral pediátrico CIE-10 (fc − 20 años)
-        fmt(base - relativedelta(years=20)):                      fmt(fc - relativedelta(years=20)),
+    return {
+        fmt(base):                                                  fmt(fc),
+        fmt(base - relativedelta(years=1)):                         fmt(fc - relativedelta(years=1)),
+        fmt(base - relativedelta(years=1) + timedelta(days=1)):     fmt(fi),
+        fmt(base - relativedelta(months=2)):                        fmt(fc - relativedelta(months=2)),
+        fmt(base - relativedelta(years=3)):                         fmt(fc - relativedelta(years=3)),
+        fmt(base - relativedelta(years=3) + timedelta(days=1)):     fmt(fc - relativedelta(years=3) + timedelta(days=1)),
+        fmt(base - relativedelta(years=7)):                         fmt(fc - relativedelta(years=7)),
+        fmt(base - relativedelta(years=19)):                        fmt(fc - relativedelta(years=19)),
+        fmt(base - relativedelta(years=20)):                        fmt(fc - relativedelta(years=20)),
     }
-    return mapa
 
 
 def _traducir_fecha(valor: str, mapa: Dict[str, str]) -> str:
-    """
-    Si el valor es una fecha dinámica del Excel base, la traduce a la cohorte
-    real. Las fechas fijas (_FECHAS_FIJAS) se devuelven sin cambio.
-    """
     if not valor or valor in _FECHAS_FIJAS:
         return valor
     return mapa.get(valor, valor)
 
 
-# ─── Utilidades de acceso y comparación ────────────────────────────────────
+# ─── Utilidades de acceso ────────────────────────────────────────────────
 
 def _get_valor(reporte_dict: dict, campo: str) -> Optional[str]:
     """Navega un path 'a.b.c' en el dict del reporte."""
@@ -154,19 +143,18 @@ def _get_valor(reporte_dict: dict, campo: str) -> Optional[str]:
 
 def _resolver_variable(val: str, reporte_dict: dict, var_map: dict) -> Optional[str]:
     """
-    Si val es una referencia 'V{n}', la resuelve buscando su valor en el reporte.
-    Si la referencia existe en var_map pero el campo es None/vacío en el reporte,
-    devuelve None para que _evaluar_regla pueda omitir la validación.
-    Si val no es una referencia V-number, lo devuelve tal cual.
+    Si val es una referencia 'V{n}', la resuelve contra el reporte.
+    Si no es referencia, la devuelve tal cual.
+    Retorna None si la referencia existe pero el campo está vacío.
     """
-    import re
+    if not val:
+        return val
     m = re.match(r"(V\d+(?:\.\d+)?)", val)
     if m:
         path = var_map.get(m.group(1))
         if path:
-            return _get_valor(reporte_dict, path)  # None si el campo no existe
-        # V-number reconocido pero sin path → devolver None
-        return None
+            return _get_valor(reporte_dict, path)
+        return None  # referencia reconocida pero sin path → omitir
     return val
 
 
@@ -178,32 +166,36 @@ def _es_fecha(valor: str) -> bool:
         return False
 
 
-def _comparar(val_campo: Optional[str], operador: str, val_regla: Optional[str],
-              bypass_centinela: bool = True) -> bool:
+# ─── Comparación ────────────────────────────────────────────────────────
+
+def _comparar(
+    val_campo: Optional[str],
+    operador: str,
+    val_regla: Optional[str],
+    bypass_centinela: bool = True,
+) -> bool:
     """
     Compara val_campo {operador} val_regla.
 
-    bypass_centinela=True (defecto, para RESTRICCIONES):
-      Si algún operando es una fecha centinela y el operador es de rango,
-      devuelve True (la restricción no aplica).
+    bypass_centinela=True (para RESTRICCIONES):
+      Si algún operando es fecha centinela y el operador es de rango, retorna True.
 
     bypass_centinela=False (para CONDICIONES):
-      Las fechas centinela se comparan normalmente. Esto permite que
-      condiciones como 'fecha_dukes > 1846-01-01' evalúen correctamente:
-      si fecha_dukes=1845-01-01 → 1845 > 1846 = False → condición no aplica.
+      Las fechas centinela se comparan normalmente. Permite que condiciones
+      como 'fecha_dukes > 1846-01-01' evalúen False si fecha_dukes=1845-01-01.
 
-    Si algún valor es None (campo no resuelto), devuelve True (omite).
+    Si algún valor es None, retorna True (campo ausente → regla no aplica).
     """
     if val_campo is None or val_regla is None:
         return True
-    # Fechas centinela con operador de rango
+
     if bypass_centinela:
         if val_campo in FECHAS_ESPECIALES and operador in ("<", ">", "<=", ">="):
             return True
         if val_regla in FECHAS_ESPECIALES and operador in ("<", ">", "<=", ">="):
             return True
 
-    # Comparación de fechas (incluye centinelas con = y <>)
+    # Comparación de fechas
     if _es_fecha(val_campo) and _es_fecha(val_regla):
         a = datetime.strptime(val_campo, "%Y-%m-%d")
         b = datetime.strptime(val_regla, "%Y-%m-%d")
@@ -211,163 +203,24 @@ def _comparar(val_campo: Optional[str], operador: str, val_regla: Optional[str],
 
     # Comparación numérica
     try:
-        a_num = float(val_campo)
-        b_num = float(val_regla)
-        return _cmp(a_num, operador, b_num)
+        return _cmp(float(val_campo), operador, float(val_regla))
     except (ValueError, TypeError):
         pass
 
     # Comparación de strings (case-insensitive)
-    a = val_campo.upper().strip()
-    b = val_regla.upper().strip()
-    return _cmp(a, operador, b)
+    return _cmp(val_campo.upper().strip(), operador, val_regla.upper().strip())
 
 
 def _cmp(a, op: str, b) -> bool:
     ops = {
-        "=":  a == b, "!=": a != b, "<>": a != b,
+        "=": a == b, "!=": a != b, "<>": a != b,
         "<=": a <= b, ">=": a >= b,
-        "<":  a <  b, ">":  a >  b,
+        "<": a < b,   ">": a > b,
     }
     return ops.get(op.strip(), True)
 
 
-# ─── Motor principal ────────────────────────────────────────────────────────
-
-def ejecutar_motor(reporte_dict: dict) -> List[ErrorDetalle]:
-    """
-    Ejecuta todas las reglas del Excel sobre el reporte CAC.
-
-    Fecha de corte: usa config_cohorte si está configurada, si no usa V134.
-    Fecha de inicio: usa config_cohorte si está configurada, si no calcula
-                     automáticamente como fecha_corte − 1 año + 1 día.
-    """
-    from scripts.generar_catalogos import VAR_MAP
-    from app.config_cohorte import resolver_fecha_corte, resolver_fecha_inicio
-
-    reglas = _cargar_reglas()
-    errores: List[ErrorDetalle] = []
-
-    # ── Resolver fecha de corte y fecha de inicio ──────────────────────────
-    fecha_corte_str = _get_valor(reporte_dict, "resultado.fecha_bdua")
-    mapa_fechas: Dict[str, str] = {}
-
-    # Fallback: si resultado.fecha_bdua está vacío, usar cabecera.fecha_corte
-    if not fecha_corte_str:
-        fecha_corte_str = _get_valor(reporte_dict, "cabecera.fecha_corte")
-
-    # Inyectar fecha_corte en resultado.fecha_bdua del dict para que
-    # _resolver_variable encuentre V134 aunque el campo real esté vacío
-    if fecha_corte_str and not _get_valor(reporte_dict, "resultado.fecha_bdua"):
-        reporte_dict.setdefault("resultado", {})["fecha_bdua"] = fecha_corte_str
-
-    fc = resolver_fecha_corte(fecha_corte_str)
-    if fc:
-        fi = resolver_fecha_inicio(fc)
-        mapa_fechas = _fechas_cohorte(fc, fi)
-
-    # ── Agrupar reglas por código de error para manejar operador Y/O ──────
-    #
-    # GRAMÁTICA Y/O del Excel CAC:
-    # Cada fila tiene un marcador Y/O que indica su relación con la fila SIGUIENTE:
-    #   "Y"  → esta fila se agrupa AND con la siguiente (y las siguientes "Y")
-    #   "O"  → esta fila es una alternativa OR independiente
-    #   ""   → última fila del grupo, alternativa OR independiente
-    #
-    # La evaluación final: OR de sub-grupos AND.
-    # El código falla solo si NINGÚN sub-grupo AND pasa completamente.
-    #
-    # Ejemplo B4824 (V21 tipo_estudio):
-    #   [Y ] >= 1  ─┐ AND
-    #   [O ] <= 10  ─┘ → (>=1 AND <=10) OR =99 OR =55
-    #   [O ] = 99
-    #   [  ] = 55
-    # val=10 es VÁLIDO porque pasa el primer sub-grupo AND.
-    grupos: Dict[str, List[dict]] = {}
-    for r in reglas:
-        if not r.get("activa", True):
-            continue
-        tipo = r.get("tipo_regla", "")
-        if tipo == "NO_PARSEADA":
-            continue
-        if tipo == "DEFINICION":
-            _evaluar_definicion(r, reporte_dict, errores)
-            continue
-        clave = r.get("id") or r.get("descripcion_original", "")
-        grupos.setdefault(clave, []).append(r)
-
-    # ── Evaluar grupos CONDICIONAL / SIMPLE ───────────────────────────────
-    for clave, grupo in grupos.items():
-        if not grupo:
-            continue
-
-        # Construir sub-grupos AND según gramática Y/O:
-        # "Y" en fila i → fila i se agrupa AND con fila i+1
-        # (y sucesivas si también son "Y"). "O" y "" son OR independientes.
-        sub_grupos: List[List[dict]] = []
-        i = 0
-        while i < len(grupo):
-            yo = (grupo[i].get("operador_logico") or "").strip().upper()
-            if yo == "Y":
-                # Inicia sub-grupo AND: consume esta y siguientes hasta que
-                # la próxima no sea "Y" (esa última también se incluye)
-                and_group: List[dict] = [grupo[i]]
-                i += 1
-                while i < len(grupo):
-                    and_group.append(grupo[i])
-                    siguiente_yo = (grupo[i].get("operador_logico") or "").strip().upper()
-                    i += 1
-                    if siguiente_yo != "Y":
-                        break
-                sub_grupos.append(and_group)
-            else:
-                # "O" o "" → alternativa OR independiente
-                sub_grupos.append([grupo[i]])
-                i += 1
-
-        if not sub_grupos:
-            sub_grupos = [[r] for r in grupo]
-
-        # Válido si AL MENOS UN sub-grupo AND pasa completamente
-        algun_subgrupo_valido = False
-        for sub in sub_grupos:
-            if all(_evaluar_regla(r, reporte_dict, mapa_fechas, VAR_MAP) for r in sub):
-                algun_subgrupo_valido = True
-                break
-
-        if not algun_subgrupo_valido:
-            r0 = grupo[0]
-            errores.append(ErrorDetalle(
-                id_regla=r0.get("id", "EXCEL"),
-                campo=r0.get("campo"),
-                nivel=r0.get("nivel", "ERROR"),
-                mensaje=r0.get("mensaje", "Ninguna de las opciones válidas fue registrada."),
-                variable_res=f"V{r0.get('variable', '')}",
-            ))
-
-    return errores
-
-
-def _evaluar_definicion(
-    regla: dict,
-    reporte_dict: dict,
-    errores: List[ErrorDetalle],
-) -> None:
-    campo = regla.get("campo")
-    if not campo:
-        return
-    val = _get_valor(reporte_dict, campo)
-    if val is None:
-        return
-    if val.strip() == "":
-        errores.append(ErrorDetalle(
-            id_regla=regla.get("id", "EXCEL-DEF"),
-            campo=campo,
-            nivel="ERROR",
-            mensaje=regla.get("mensaje") or f"El campo '{campo}' no puede estar vacío.",
-            variable_res=f"V{regla.get('variable', '')}",
-        ))
-
+# ─── Evaluación de una regla individual ─────────────────────────────────
 
 def _evaluar_regla(
     regla: dict,
@@ -377,7 +230,7 @@ def _evaluar_regla(
 ) -> bool:
     """
     Evalúa una regla CONDICIONAL o SIMPLE.
-    Retorna True si la regla se cumple (sin error), False si hay infracción.
+    Retorna True si se cumple (sin error), False si hay infracción.
     """
     campo       = regla.get("campo")
     restriccion = regla.get("restriccion") or {}
@@ -386,7 +239,7 @@ def _evaluar_regla(
     if not campo:
         return True
 
-    # ── Evaluar condición (si existe) ─────────────────────────────────────
+    # ── Evaluar condición (si existe) ────────────────────────────────────
     if condicion:
         cond_campo = condicion.get("campo")
         cond_op    = condicion.get("operador", "=")
@@ -399,12 +252,11 @@ def _evaluar_regla(
         cond_val_r = _resolver_variable(cond_val, reporte_dict, var_map)
         cond_val_r = _traducir_fecha(cond_val_r or cond_val, mapa_fechas)
 
-        # Para condiciones, NO hacer bypass de centinelas en rangos:
-        # "fecha_dukes > 1846-01-01" debe ser False si fecha_dukes=1845-01-01
+        # Para condiciones NO se hace bypass de centinelas (comportamiento correcto)
         if not _comparar(val_cond, cond_op, cond_val_r, bypass_centinela=False):
-            return True  # condición no se cumple → restricción no aplica
+            return True  # condición no aplica → restricción no evaluada
 
-    # ── Evaluar restricción ────────────────────────────────────────────────
+    # ── Evaluar restricción ──────────────────────────────────────────────
     val_campo = _get_valor(reporte_dict, campo)
     if val_campo is None:
         return True  # campo ausente → no se puede validar
@@ -413,12 +265,167 @@ def _evaluar_regla(
     val_rest  = restriccion.get("valor", "")
     val_rest_r = _resolver_variable(val_rest, reporte_dict, var_map)
 
-    # Si val_rest era una referencia V-number pero el campo referenciado
-    # no tiene valor en el reporte (ej: V134 cuando fecha_bdua es vacío),
-    # no se puede validar la restricción → omitir (True = sin error)
+    # Si val_rest era referencia V-number pero el campo referenciado está vacío → omitir
     if val_rest_r is None and val_rest != val_rest_r:
         return True
 
     val_rest_r = _traducir_fecha(val_rest_r or val_rest, mapa_fechas)
-
     return _comparar(val_campo, op_rest, val_rest_r)
+
+
+def _evaluar_definicion(
+    regla: dict,
+    reporte_dict: dict,
+    errores: List[ErrorDetalle],
+) -> None:
+    """Valida reglas de tipo DEFINICION (formato/existencia del campo)."""
+    campo   = regla.get("campo")
+    mensaje = regla.get("mensaje") or regla.get("descripcion_original", "")
+    var_res = regla.get("variable", "")
+
+    if not campo:
+        return
+
+    valor = _get_valor(reporte_dict, campo)
+    if valor is None or valor.strip() == "":
+        errores.append(ErrorDetalle(
+            id_regla=regla.get("id", ""),
+            campo=campo,
+            nivel="ERROR",
+            mensaje=f"[DEFINICIÓN] Campo obligatorio vacío o ausente: {campo}. {mensaje}",
+            variable_res=str(var_res),
+        ))
+
+
+# ─── Motor principal ─────────────────────────────────────────────────────
+
+def ejecutar_motor(reporte_dict: dict) -> List[ErrorDetalle]:
+    """
+    Ejecuta las 4 fases del motor CAC sobre el reporte.
+
+    Fase 1 — Carga de reglas y contexto de cohorte.
+    Fase 2 — Expansión estructural: determina campos activos (grupos dinámicos).
+    Fase 3 — Evaluación de reglas con lógica Y/O corregida.
+    Fase 4 — Retorno de errores con metadata.
+    """
+    from scripts.generar_catalogos import VAR_MAP
+    from app.config_cohorte import resolver_fecha_corte, resolver_fecha_inicio
+
+    reglas    = _cargar_reglas()
+    errores: List[ErrorDetalle] = []
+
+    # ── FASE 1: Resolver fecha de corte y construir mapa de fechas ────────
+    fecha_corte_str = _get_valor(reporte_dict, "resultado.fecha_bdua")
+    if not fecha_corte_str:
+        fecha_corte_str = _get_valor(reporte_dict, "cabecera.fecha_corte")
+
+    # Inyectar en resultado.fecha_bdua para que V134 se resuelva siempre
+    if fecha_corte_str and not _get_valor(reporte_dict, "resultado.fecha_bdua"):
+        reporte_dict.setdefault("resultado", {})["fecha_bdua"] = fecha_corte_str
+
+    mapa_fechas: Dict[str, str] = {}
+    fc = resolver_fecha_corte(fecha_corte_str)
+    if fc:
+        fi = resolver_fecha_inicio(fc)
+        mapa_fechas = _fechas_cohorte(fc, fi)
+
+    # ── FASE 2: Expansión estructural — campos activos de grupos dinámicos ─
+    campos_activos: Set[str] = expandir_campos_activos(reporte_dict)
+
+    # ── FASE 3: Agrupar reglas por (id, campo) y evaluar con Y/O ─────────
+    #
+    # GRAMÁTICA Y/O del Excel CAC:
+    #   "Y"  → esta fila se agrupa AND con la siguiente
+    #   "O"  → alternativa OR independiente
+    #   ""   → última fila del grupo, alternativa OR independiente
+    #
+    # Evaluación final: OR de sub-grupos AND.
+    # Error solo si NINGÚN sub-grupo AND pasa completamente.
+    #
+    # FIX-01: La clave es (id, campo) — no solo id — para evitar mezclar
+    # reglas de distintas variables que comparten código de error.
+
+    grupos: Dict[tuple, List[dict]] = {}
+    for r in reglas:
+        if not r.get("activa", True):
+            continue
+
+        tipo = r.get("tipo_regla", "")
+
+        if tipo == "DEFINICION":
+            _evaluar_definicion(r, reporte_dict, errores)
+            continue
+
+        if tipo not in ("CONDICIONAL", "SIMPLE"):
+            continue
+
+        # FIX-02: omitir campos de grupos dinámicos que no aplican
+        campo_r = r.get("campo", "")
+        es_dinamico = any(
+            campo_r.startswith(prefijo) for prefijo in [
+                "terapia_sistemica.primer_esquema.med",
+                "terapia_sistemica.ultimo_esquema.med",
+                "terapia_sistemica.fases.",
+                "cuidados_paliativos.med_",
+                "cuidados_paliativos.prof_",
+                "cuidados_paliativos.trabajo_social",
+                "cuidados_paliativos.otro_prof",
+            ]
+        )
+        if es_dinamico and campo_r not in campos_activos:
+            continue  # campo no activo para este registro → skip
+
+        # FIX-01: clave compuesta (id, campo)
+        clave = (r.get("id", ""), campo_r)
+        grupos.setdefault(clave, []).append(r)
+
+    # ── Evaluar cada grupo de reglas ──────────────────────────────────────
+    for (id_regla, campo_grupo), grupo in grupos.items():
+        # Partir el grupo en sub-grupos AND según el marcador Y/O
+        sub_grupos_and = []
+        actual = []
+        for regla in grupo:
+            actual.append(regla)
+            yo = str(regla.get("operador_logico", "")).strip().upper()
+            if yo != "Y":
+                sub_grupos_and.append(actual)
+                actual = []
+        if actual:
+            sub_grupos_and.append(actual)
+
+        # OR de sub-grupos AND: error si NINGUNO pasa
+        alguno_pasa = False
+        for sub in sub_grupos_and:
+            pasa_todo = all(
+                _evaluar_regla(r, reporte_dict, mapa_fechas, VAR_MAP)
+                for r in sub
+            )
+            if pasa_todo:
+                alguno_pasa = True
+                break
+
+        if not alguno_pasa and sub_grupos_and:
+            regla_ref = sub_grupos_and[0][0]
+            errores.append(ErrorDetalle(
+                id_regla=id_regla,
+                campo=campo_grupo,
+                nivel=regla_ref.get("nivel", "ERROR"),
+                mensaje=regla_ref.get("mensaje", regla_ref.get("descripcion_original", "")),
+                variable_res=str(regla_ref.get("variable", "")),
+            ))
+
+    return errores
+
+
+def ejecutar_motor_con_diagnostico(reporte_dict: dict) -> dict:
+    """
+    Versión extendida de ejecutar_motor que incluye diagnóstico de grupos dinámicos.
+    Útil en desarrollo y para el endpoint /api/validar-cac/debug.
+    """
+    errores = ejecutar_motor(reporte_dict)
+    grupos_info = diagnosticar_grupos(reporte_dict)
+    return {
+        "errores": [e.dict() for e in errores],
+        "total_errores": len(errores),
+        "grupos_dinamicos": grupos_info,
+    }
