@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/upload", label: "Cargar Archivo", icon: Upload },
+  { href: "/dashboard/manual-entry", label: "Entrada Manual", icon: FileText },
   { href: "/dashboard/reports", label: "Reportes", icon: FileText },
   { href: "/dashboard/catalogos", label: "Catálogos", icon: BookOpen },
   { href: "/dashboard/settings", label: "Configuración", icon: Settings },

@@ -82,7 +82,10 @@ def _cargar_reglas() -> List[dict]:
     if _REGLAS_CACHE is None:
         if _REGLAS_PATH.exists():
             with open(_REGLAS_PATH, encoding="utf-8") as f:
-                _REGLAS_CACHE = json.load(f)
+                data = json.load(f)
+                # El JSON tiene la forma {"_meta": {...}, "reglas": [...]}
+                # Queremos trabajar con la lista de reglas directamente.
+                _REGLAS_CACHE = data.get("reglas", [])
         else:
             _REGLAS_CACHE = []
     return _REGLAS_CACHE
