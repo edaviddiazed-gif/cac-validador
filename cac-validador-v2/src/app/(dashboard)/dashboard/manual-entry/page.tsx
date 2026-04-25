@@ -3,10 +3,19 @@
 import { useState } from "react";
 import { useAppStore } from "@/lib/store";
 import { IdentificacionForm } from "@/components/forms/IdentificacionForm";
+import { DiagnosticoForm } from "@/components/forms/DiagnosticoForm";
+import { TerapiaSistemicaForm } from "@/components/forms/TerapiaSistemicaForm";
+import { CirugiaForm } from "@/components/forms/CirugiaForm";
+import { RadioterapiaForm } from "@/components/forms/RadioterapiaForm";
+import { TrasplanteForm } from "@/components/forms/TrasplanteForm";
+import { PaliativosForm } from "@/components/forms/PaliativosForm";
+import { ResultadoForm } from "@/components/forms/ResultadoForm";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Play, Save, ChevronRight, ChevronLeft, AlertCircle, CheckCircle2 } from "lucide-react";
+import { validateRecord, createEmptyCatalogs } from "@/lib/validations";
+import type { CACRecord } from "@/types/cac";
 
 const SECCIONES = [
   { id: "identificacion", label: "1. Identificación", icon: "👤" },
@@ -28,15 +37,101 @@ export default function ManualEntryPage() {
   const handleValidar = async () => {
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:8000/validar-registro", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(report),
+      // Map nested legacy state (for forms 1-3) and flat root state (forms 4-8) to a single flat CACRecord
+      const p = report.paciente || {};
+      const d = report.diagnostico || {};
+      const t = report.terapia_sistemica || {};
+      
+      const record: any = {
+        // Flat fields injected by new forms (v74 to v134)
+        ...report,
+        
+        // Identificacion
+        v01_primer_nombre: p.primer_nombre,
+        v02_segundo_nombre: p.segundo_nombre,
+        v03_primer_apellido: p.primer_apellido,
+        v04_segundo_apellido: p.segundo_apellido,
+        v05_tipo_id: p.tipo_id,
+        v06_numero_id: p.num_id,
+        v07_fecha_nacimiento: p.fecha_nacimiento,
+        v08_sexo: p.sexo,
+        v10_regimen: p.regimen,
+        
+        // Diagnostico
+        v17_cie10: d.cie10_neoplasia_primaria,
+        v18_fecha_diagnostico: d.fecha_diagnostico,
+        v19_medio_diagnostico: d.medio_diagnostico,
+        v20_topografia: d.topografia,
+        v21_base_diagnostico: d.base_diagnostico,
+        v22_grado_diferenciacion: d.grado_diferenciacion,
+        v23_lateralidad: d.lateralidad,
+        v24_fecha_biopsia: d.fecha_biopsia,
+        v25_ips_diagnostico: d.ips_diagnostico,
+        v27_histologia: d.histologia,
+        v28_comportamiento: d.comportamiento,
+        v29_estadificacion: d.estadificacion,
+        v30_clasificacion_tnm: d.clasificacion_tnm,
+        v31_her2_realizado: d.her2_realizado,
+        v32_her2_fecha: d.her2_fecha,
+        v33_her2_resultado: d.her2_resultado,
+        v34_receptores_estrogeno: d.receptores_estrogeno,
+        v35_receptores_progesterona: d.receptores_progesterona,
+        v36_ki67: d.ki67,
+        v37_gleason: d.gleason,
+        v38_psa: d.psa,
+        v40_estadio_ann_arbor: d.estadio_ann_arbor,
+        v41_sintomas_b: d.sintomas_b,
+        v42_ipss: d.ipss,
+        
+        // Terapia
+        v45_recibio_qs: t.recibio_qt,
+        v46_fecha_inicio_qs: t.quimio?.fecha_inicio,
+        v47_num_ciclos: t.quimio?.num_ciclos,
+        v48_intencion_primer_esquema: t.quimio?.intencion,
+        v51_fecha_inicio_ultimo_esquema: t.ultimo_esquema?.fecha_inicio,
+        v57_num_ciclos_ultimo: t.ultimo_esquema?.num_ciclos,
+        v58_fecha_ultimo_ciclo: t.ultimo_esquema?.fecha_ultimo_ciclo,
+        v59_estado_esquema: t.quimio?.estado,
+        v60_recibio_hormonoterapia: t.hormonoterapia?.recibio,
+        v61_fecha_inicio_hormono: t.hormonoterapia?.fecha_inicio,
+        v62_tipo_hormono: t.hormonoterapia?.tipo,
+        v67_estado_hormono: t.hormonoterapia?.estado,
+        v68_recibio_inmunoterapia: t.inmunoterapia?.recibio,
+        v69_fecha_inicio_inmuno: t.inmunoterapia?.fecha_inicio,
+        v73_estado_inmuno: t.inmunoterapia?.estado,
+      };
+
+      // Map ATCs for first scheme (v53_1 to v53_8)
+      if (t.quimio?.meds_atc) {
+        t.quimio.meds_atc.forEach((val: string, i: number) => {
+          if (i < 8) record[`v53_${i+1}_med_atc_primer`] = val;
+        });
+      }
+      
+      // Map ATCs for last scheme (v54 to v56)
+      if (t.ultimo_esquema?.meds_atc) {
+        t.ultimo_esquema.meds_atc.forEach((val: string, i: number) => {
+          if (i < 3) record[`v${54+i}_med_atc_ultimo_${i+1}`] = val;
+        });
+      }
+
+      const context = { catalogos: createEmptyCatalogs() };
+      const errors = validateRecord(record as CACRecord, 1, context);
+      const realErrors = errors.filter((e) => e.severity !== "info");
+      setValidationResult({
+        valido: realErrors.length === 0,
+        total_errores: realErrors.filter((e) => e.severity === "error").length,
+        total_advertencias: realErrors.filter((e) => e.severity === "warning").length,
+        errores: errors,
       });
-      const data = await response.json();
-      setValidationResult(data);
     } catch (error) {
       console.error("Error validando:", error);
+      setValidationResult({
+        valido: false,
+        total_errores: 1,
+        total_advertencias: 0,
+        errores: [{ message: "Error interno de validación" }],
+      });
     } finally {
       setLoading(false);
     }
@@ -117,12 +212,13 @@ export default function ManualEntryPage() {
         <div className="lg:col-span-3 space-y-6">
           <Card className="p-8 min-h-[500px] shadow-sm">
             {activeTab === "identificacion" && <IdentificacionForm />}
-            {activeTab !== "identificacion" && (
-              <div className="flex flex-col items-center justify-center h-full py-20 text-gray-400">
-                <p className="text-lg font-medium">Sección en proceso de migración</p>
-                <p className="text-sm italic">Pronto disponible: {SECCIONES.find(s => s.id === activeTab)?.label}</p>
-              </div>
-            )}
+            {activeTab === "diagnostico" && <DiagnosticoForm />}
+            {activeTab === "terapia" && <TerapiaSistemicaForm />}
+            {activeTab === "cirugia" && <CirugiaForm />}
+            {activeTab === "radioterapia" && <RadioterapiaForm />}
+            {activeTab === "trasplante" && <TrasplanteForm />}
+            {activeTab === "paliativos" && <PaliativosForm />}
+            {activeTab === "resultado" && <ResultadoForm />}
           </Card>
 
           {/* Pagination */}

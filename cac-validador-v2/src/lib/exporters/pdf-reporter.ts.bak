@@ -3,12 +3,12 @@
  * FASE 4B: Generar reporte PDF ejecutivo con jsPDF
  * 
  * Estructura:
- * - Portada: Logo CAC, EAPB, periodo
+ * - Portada: Logo CAC, EAPB, período
  * - Resumen ejecutivo: KPIs
- * - Analisis de errores: graficos y tablas
+ * - Análisis de errores: gráficos y tablas
  * - Top 10 errores
  * - Recomendaciones
- * - Pie de pagina: Resolucion 0247/2014
+ * - Pie de página: Resolución 0247/2014
  */
 
 interface ReporteData {
@@ -36,6 +36,7 @@ export class PdfReporter {
    */
   async generate(reporteData: ReporteData): Promise<PdfExportResult> {
     try {
+      // Importar jsPDF dinámicamente para evitar SSR issues
       const { jsPDF } = await import('jspdf');
 
       const doc = new jsPDF({
@@ -44,6 +45,8 @@ export class PdfReporter {
         format: 'letter',
       });
 
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
       let currentY = 10;
 
       // 1. Portada
@@ -56,14 +59,15 @@ export class PdfReporter {
       doc.addPage();
       currentY = 10;
 
-      // 3. Analisis de Errores
+      // 3. Análisis de Errores
       this.addErrorAnalysis(doc, reporteData, currentY);
 
-      // 4. Pie de pagina en todas las paginas
+      // 4. Pie de página en todas las páginas
       this.addFooters(doc, reporteData);
 
       // 5. Obtener bytes del PDF
       const pdfBytes = doc.output('arraybuffer') as unknown as Uint8Array;
+
       const fileName = this.generateFileName(reporteData.eapbCodigo);
 
       return {
@@ -87,39 +91,58 @@ export class PdfReporter {
    */
   private addCoverPage(doc: any, data: ReporteData): void {
     const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
 
+    // Fondo gradiente simulado (rectángulo azul)
     doc.setFillColor(33, 150, 243);
     doc.rect(0, 0, pageWidth, 80, 'F');
 
+    // Título "REPORTE DE VALIDACIÓN"
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(32);
     doc.setTextColor(255, 255, 255);
-    doc.text('REPORTE DE VALIDACION', pageWidth / 2, 40, { align: 'center' });
+    doc.text('REPORTE DE VALIDACIÓN', pageWidth / 2, 40, {
+      align: 'center',
+    });
 
+    // Subtítulo "CUENTA DE ALTO COSTO"
     doc.setFontSize(14);
-    doc.text('Resolucion 0247/2014', pageWidth / 2, 55, { align: 'center' });
+    doc.text('Resolución 0247/2014', pageWidth / 2, 55, {
+      align: 'center',
+    });
 
+    // Información del reporte
     doc.setTextColor(0, 0, 0);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(12);
 
-    doc.text(`EAPB: ${data.eapbNombre}`, pageWidth / 2, 120, { align: 'center' });
+    doc.text(`EAPB: ${data.eapbNombre}`, pageWidth / 2, 120, {
+      align: 'center',
+    });
     doc.text(
-      `Periodo: ${this.formatDate(data.periodCorte)}`,
-      pageWidth / 2, 135, { align: 'center' }
+      `Período: ${this.formatDate(data.periodCorte)}`,
+      pageWidth / 2,
+      135,
+      { align: 'center' }
     );
     doc.text(
       `Generado: ${this.formatDate(data.fechaGeneracion || new Date())}`,
-      pageWidth / 2, 150, { align: 'center' }
+      pageWidth / 2,
+      150,
+      { align: 'center' }
     );
+
+    // KPIs principales
+    doc.setFontSize(24);
+    doc.setFont('helvetica', 'bold');
 
     const kpis = [
       { label: 'Registros', value: data.totalRegistros.toLocaleString() },
       {
-        label: 'Validos',
+        label: 'Válidos',
         value: `${data.registrosValidos} (${Math.round((data.registrosValidos / data.totalRegistros) * 100)}%)`,
       },
-      { label: 'Con Error', value: String(data.registrosConError) },
+      { label: 'Con Error', value: data.registrosConError },
     ];
 
     let yPos = 180;
@@ -143,20 +166,27 @@ export class PdfReporter {
     const pageWidth = doc.internal.pageSize.getWidth();
     let y = startY;
 
+    // Título
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(16);
     doc.text('RESUMEN EJECUTIVO', 20, y);
     y += 15;
 
+    // Línea separadora
     doc.setDrawColor(33, 150, 243);
     doc.line(20, y - 2, pageWidth - 20, y - 2);
     y += 10;
 
+    // Tabla de métricas
     const metrics = [
-      ['Metrica', 'Valor', '%'],
-      ['Total Registros', data.totalRegistros.toLocaleString(), '100%'],
+      ['Métrica', 'Valor', '%'],
       [
-        'Registros Validos',
+        'Total Registros',
+        data.totalRegistros.toLocaleString(),
+        '100%',
+      ],
+      [
+        'Registros Válidos',
         data.registrosValidos.toLocaleString(),
         `${Math.round((data.registrosValidos / data.totalRegistros) * 100)}%`,
       ],
@@ -184,12 +214,7 @@ export class PdfReporter {
         doc.setTextColor(255, 255, 255);
       } else {
         doc.setFont('helvetica', 'normal');
-        // FIX: ternario extraido -- no se puede usar ternario dentro de setFillColor
-        if (i % 2 === 0) {
-          doc.setFillColor(240, 240, 240);
-        } else {
-          doc.setFillColor(255, 255, 255);
-        }
+        doc.setFillColor(i % 2 === 0 ? 240, 240, 240 : 255, 255, 255);
         doc.setTextColor(0, 0, 0);
       }
 
@@ -203,6 +228,7 @@ export class PdfReporter {
 
     y += 10;
 
+    // Recomendaciones principales
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(12);
     doc.text('Recomendaciones Principales:', 20, y);
@@ -213,23 +239,25 @@ export class PdfReporter {
 
     const recommendations = this.generateRecommendations(data);
     for (const rec of recommendations.slice(0, 5)) {
-      doc.text(`- ${rec}`, 25, y, { maxWidth: pageWidth - 50 });
+      doc.text(`• ${rec}`, 25, y, { maxWidth: pageWidth - 50 });
       y += 8;
     }
   }
 
   /**
-   * Agregar analisis de errores
+   * Agregar análisis de errores
    */
   private addErrorAnalysis(doc: any, data: ReporteData, startY: number): void {
     const pageWidth = doc.internal.pageSize.getWidth();
     let y = startY;
 
+    // Título
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(14);
-    doc.text('ANALISIS DE ERRORES', 20, y);
+    doc.text('ANÁLISIS DE ERRORES', 20, y);
     y += 10;
 
+    // Top 10 errores
     const topErrors = this.getTopErrors(data.errores, 10);
 
     doc.setFont('helvetica', 'normal');
@@ -238,22 +266,30 @@ export class PdfReporter {
     for (let i = 0; i < topErrors.length; i++) {
       const error = topErrors[i];
 
+      // Check si necesitamos nueva página
       if (y > 250) {
         doc.addPage();
         y = 20;
       }
 
+      // Línea del error
       const percentage = (
-        (error.count / data.registrosConError) * 100
+        (error.count / data.registrosConError) *
+        100
       ).toFixed(1);
 
-      doc.setFillColor(255 - i * 10, 200 - i * 5, 200 - i * 5);
+      doc.setFillColor(
+        255 - i * 10,
+        200 - i * 5,
+        200 - i * 5
+      );
       doc.rect(20, y, pageWidth - 40, 6, 'F');
 
       doc.setTextColor(0, 0, 0);
       doc.text(
         `${i + 1}. Variable ${error.variable}: ${error.count} errores (${percentage}%)`,
-        25, y + 4
+        25,
+        y + 4
       );
 
       y += 8;
@@ -261,7 +297,7 @@ export class PdfReporter {
   }
 
   /**
-   * Agregar pie de pagina
+   * Agregar pie de página
    */
   private addFooters(doc: any, data: ReporteData): void {
     const pageCount = (doc as any).internal.getNumberOfPages();
@@ -274,7 +310,9 @@ export class PdfReporter {
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
       doc.text(
-        `Resolucion 0247/2014 - Pagina ${i} de ${pageCount} - Generado: ${this.formatDate(new Date())}`,
+        `Resolución 0247/2014 • Página ${i} de ${pageCount} • Generado: ${this.formatDate(
+          new Date()
+        )}`,
         doc.internal.pageSize.getWidth() / 2,
         pageHeight - 10,
         { align: 'center' }
@@ -314,15 +352,17 @@ export class PdfReporter {
 
     if (errorRate > 30) {
       recs.push('Alto porcentaje de errores (>30%). Revisar proceso de captura de datos.');
-    } else if (errorRate > 15) {
-      recs.push('Porcentaje moderado de errores. Enfocarse en categorias con mas fallos.');
-    } else {
-      recs.push('Tasa de calidad buena. Continuar con validaciones periodicas.');
+    }
+    if (errorRate > 15 && errorRate <= 30) {
+      recs.push('Porcentaje moderado de errores. Enfocarse en categorías con más fallos.');
+    }
+    if (errorRate <= 15) {
+      recs.push('Tasa de calidad buena. Continuar con validaciones periódicas.');
     }
 
-    recs.push('Validar que codigos CIE-10 sean correctos en diagnosticos.');
-    recs.push('Revisar fechas de diagnostico vs fechas de biopsia.');
-    recs.push('Verificar campos requeridos esten completos.');
+    recs.push('Validar que códigos CIE-10 sean correctos en diagnósticos.');
+    recs.push('Revisar fechas de diagnóstico vs fechas de biopsia.');
+    recs.push('Verificar campos requeridos estén completos.');
 
     return recs;
   }
@@ -332,9 +372,10 @@ export class PdfReporter {
    */
   private generateFileName(eapbCode: string): string {
     const now = new Date();
-    const year  = now.getFullYear();
+    const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day   = String(now.getDate()).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+
     return `REPORTE_${eapbCode}_${year}${month}${day}.pdf`;
   }
 

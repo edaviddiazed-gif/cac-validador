@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
         {
           success: false,
           error: 'Invalid filename format',
-          details: filenameValidation.errors,
+          details: filenameValidation.error ? [filenameValidation.error] : [],
         },
         { status: 400 }
       );
@@ -59,8 +59,8 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. Parsear contenido del archivo
-    const parseResult = parseCAC(payload.fileContent);
-    if (!parseResult.success) {
+    const parseResult = parseCAC(payload.fileContent, payload.fileName);
+    if (parseResult.errors.length > 0) {
       return NextResponse.json(
         {
           success: false,
@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
         {
           success: false,
           error: 'Invalid request schema',
-          details: error.errors,
+          details: error.issues,
         },
         { status: 400 }
       );

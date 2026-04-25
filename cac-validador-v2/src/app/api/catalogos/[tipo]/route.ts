@@ -1,61 +1,82 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+/**
+ * GET /api/catalogos/[tipo]
+ * Sirve catálogos de referencia (CIE-10, ATC, CUPS, DIVIPOLA, IPS)
+ * usados por el motor de validación del cliente.
+ *
+ * @param tipo  cie10 | atc | cups | divipola | ips
+ */
+
+import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY! // API Route server-side
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
 );
 
-const ALLOWED_CATALOGS = ['cie10_cac', 'atc_medicamentos', 'cups_procedimientos', 'divipola_municipios', 'eapb'];
+/** Map tipo → nombre de tabla en Supabase */
+const CATALOGO_TABLA: Record<string, string> = {
+  cie10:    "catalogo_cie10",
+  atc:      "catalogo_atc",
+  cups:     "catalogo_cups",
+  divipola: "catalogo_divipola",
+  ips:      "catalogo_ips",
+};
 
-/**
- * GET /api/catalogos/[tipo]?q=...&limit=50
- * Busca en los catálogos del sistema
- */
+/** Columna que contiene el código (primaria) en cada tabla */
+const CATALOGO_COLUMNA: Record<string, string> = {
+  cie10:    "codigo",
+  atc:      "codigo_atc",
+  cups:     "codigo_cups",
+  divipola: "codigo_divipola",
+  ips:      "codigo_habilitacion",
+};
+
 export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ tipo: string }> } // In Next.js 15, params is a Promise in App Router
+  _req: NextRequest,
+  { params }: { params: { tipo: string } },
 ) {
+  const tipo = params.tipo?.toLowerCase();
+
+  if (!CATALOGO_TABLA[tipo]) {
+    return NextResponse.json(
+      { success: false, error: `Catálogo "${tipo}" no reconocido. Use: cie10, atc, cups, divipola, ips` },
+      { status: 400 },
+    );
+  }
+
+  const tabla   = CATALOGO_TABLA[tipo];
+  const columna = CATALOGO_COLUMNA[tipo];
+
   try {
-    const { tipo } = await params;
-    const searchParams = request.nextUrl.searchParams;
-    const query = searchParams.get('q') || '';
-    const limit = parseInt(searchParams.get('limit') || '50', 10);
-
-    if (!ALLOWED_CATALOGS.includes(tipo)) {
-      return NextResponse.json({ success: false, error: 'Catálogo no permitido o inexistente' }, { status: 400 });
-    }
-
-    let supaQuery = supabase.from(tipo).select('*').limit(Math.min(limit, 100));
-
-    if (query) {
-      if (tipo === 'divipola_municipios') {
-        supaQuery = supaQuery.or(`nombre.ilike.%${query}%,codigo.ilike.%${query}%`);
-      } else if (tipo === 'eapb') {
-        supaQuery = supaQuery.or(`nombre.ilike.%${query}%,codigo.ilike.%${query}%`);
-      } else {
-        supaQuery = supaQuery.or(`descripcion.ilike.%${query}%,codigo.ilike.%${query}%`).eq('activo', true);
-      }
-    } else {
-       if (tipo !== 'divipola_municipios' && tipo !== 'eapb') {
-           supaQuery = supaQuery.eq('activo', true);
-       }
-    }
-
-    const { data, error } = await supaQuery;
+    // Paginación: máx 1 000 filas por defecto en Supabase → range completo
+    const { data, error } = await supabase
+      .from(tabla)
+      .select(columna)
+      .order(columna)
+      .limit(50_000);   // suficiente para todos los catálogos CAC
 
     if (error) throw error;
 
-    return NextResponse.json({ success: true, data }, {
-        headers: {
-            'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=43200'
-        }
-    });
-  } catch (error) {
-    console.error('Catalogo fetch error:', error);
+    const codigos: string[] = ((data as any[]) ?? []).map(
+      (row: any) => String(row[columna] ?? "").toUpperCase().trim(),
+    ).filter(Boolean);
+
     return NextResponse.json(
-      { success: false, error: 'Internal Server Error' },
-      { status: 500 }
+      { success: true, tipo, total: codigos.length, codigos },
+      {
+        headers: {
+          // Cache 1 hora en CDN — los catálogos cambian rara vez
+          "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
+        },
+      },
+    );
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Error desconocido";
+    console.error(`[/api/catalogos/${tipo}]`, msg);
+    return NextResponse.json(
+      { success: false, error: `Error al leer catálogo ${tipo}: ${msg}` },
+      { status: 500 },
     );
   }
 }

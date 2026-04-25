@@ -117,38 +117,113 @@ export async function POST(request: NextRequest) {
       throw new Error(`Failed to create validation job: ${jobError?.message}`);
     }
 
-    // 6. Triggerear Edge Function (async, no esperar)
+    // 6. Ejecutar validación con el motor V2 completo (inline, no Edge Function)
+    // Esto reemplaza la Edge Function que solo validaba 3 campos triviales
     try {
-      // Llamada no-bloqueante a Edge Function
-      fetch(
-        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/validate-cac`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
-          },
-          body: JSON.stringify({
-            jobId: job.id,
-            reporteId: payload.reporteId,
-            eapbId: reporte.eapb_id,
-          }),
+      // Marcar job como procesando
+      await supabase
+        .from('validation_jobs')
+        .update({ status: 'procesando', started_at: new Date().toISOString() })
+        .eq('id', job.id);
+
+      // Obtener registros del reporte
+      const { data: registros, error: regError } = await supabase
+        .from('registros_cancer')
+        .select('*')
+        .eq('reporte_id', payload.reporteId)
+        .order('linea_numero', { ascending: true });
+
+      if (regError || !registros || registros.length === 0) {
+        throw new Error('No registros found for validation');
+      }
+
+      // Importar el motor de validación V2
+      const { validateRecord, createEmptyCatalogs } = await import('@/lib/validations');
+      const context = { catalogos: createEmptyCatalogs() };
+
+      let registrosValidos = 0;
+      const todosErrores: any[] = [];
+
+      for (const registro of registros) {
+        const errors = validateRecord(registro as any, registro.linea_numero ?? 0, context);
+        const realErrors = errors.filter(e => e.severity !== 'info');
+
+        if (realErrors.length === 0) {
+          registrosValidos++;
         }
-      ).catch((err) => {
-        console.error('Edge Function call failed:', err);
-        // No fallar la respuesta si falla la función
-      });
+
+        // Preparar errores para inserción en BD
+        for (const err of realErrors) {
+          todosErrores.push({
+            registro_id: registro.id,
+            variable_numero: err.variable,
+            variable_nombre: err.variableName,
+            tipo_error: err.type,
+            valor_reportado: err.reportedValue || null,
+            mensaje_error: err.message,
+            sugerencia: err.suggestion || null,
+            created_at: new Date().toISOString(),
+          });
+        }
+      }
+
+      // Insertar errores en lotes de 500
+      if (todosErrores.length > 0) {
+        for (let i = 0; i < todosErrores.length; i += 500) {
+          const batch = todosErrores.slice(i, i + 500);
+          await supabase.from('errores_validacion').insert(batch);
+        }
+      }
+
+      // Actualizar reporte
+      const registrosConError = registros.length - registrosValidos;
+      await supabase
+        .from('reportes_cancer')
+        .update({
+          estado: 'validado',
+          validated_at: new Date().toISOString(),
+          registros_validos: registrosValidos,
+          registros_con_error: registrosConError,
+          total_errores: todosErrores.length,
+        })
+        .eq('id', payload.reporteId);
+
+      // Actualizar job como completado
+      await supabase
+        .from('validation_jobs')
+        .update({
+          status: 'completado',
+          registros_procesados: registros.length,
+          registros_validos: registrosValidos,
+          registros_con_error: registrosConError,
+          completed_at: new Date().toISOString(),
+        })
+        .eq('id', job.id);
+
+      console.log(
+        `[validate] Completed: ${registrosValidos}/${registros.length} válidos, ${todosErrores.length} errores`
+      );
+
     } catch (err) {
-      console.error('Error triggering Edge Function:', err);
+      console.error('Validation processing error:', err);
+      // Marcar job como error
+      await supabase
+        .from('validation_jobs')
+        .update({
+          status: 'error',
+          completed_at: new Date().toISOString(),
+          metadata: { error: err instanceof Error ? err.message : 'Unknown' },
+        })
+        .eq('id', job.id);
     }
 
-    // 7. Retornar respuesta inmediata con jobId
+    // 7. Retornar respuesta con jobId
     return NextResponse.json({
       success: true,
       jobId: job.id,
       reporteId: payload.reporteId,
-      estimatedTime: Math.ceil(reporte.total_registros / 500), // segundos (500 reg/s)
-      message: 'Validación iniciada. Usa jobId para polling de progreso.',
+      estimatedTime: Math.ceil(reporte.total_registros / 500),
+      message: 'Validación completada con motor V2.',
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -156,7 +231,7 @@ export async function POST(request: NextRequest) {
         {
           success: false,
           error: 'Invalid request schema',
-          details: error.errors,
+          details: error.issues,
         },
         { status: 400 }
       );

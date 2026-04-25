@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import { CloudUpload, AlertCircle, CheckCircle } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function UploadPage() {
   const router = useRouter();
+  const { userId, eapbId, loading: authLoading } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [periodCorte, setPeriodCorte] = useState("2023-01-01");
   const [loading, setLoading] = useState(false);
@@ -33,6 +35,10 @@ export default function UploadPage() {
       setError("Selecciona un archivo");
       return;
     }
+    if (!eapbId || !userId) {
+      setError("Usuario no autenticado o sin EAPB asignada. Inicie sesión.");
+      return;
+    }
 
     setLoading(true);
     try {
@@ -45,7 +51,7 @@ export default function UploadPage() {
           fileName: file.name,
           fileContent,
           periodCorte,
-          eapbId: "placeholder", // TODO: obtener del usuario actual
+          eapbId,
         }),
       });
 
