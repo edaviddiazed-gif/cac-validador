@@ -22,3 +22,7 @@ yarn-error.log*
 # OS
 .DS_Store
 Thumbs.db
+
+# Sensitive Data
+*.xlsx
+RES004_0274_2023.xlsx
