@@ -7,6 +7,9 @@ import { NextResponse, type NextRequest } from "next/server";
  */
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
+  const devSessionEmail = request.cookies.get("cac_dev_session")?.value;
+  const isDevAdminSession =
+    process.env.NODE_ENV === "development" && devSessionEmail === "admin@local.test";
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -35,7 +38,7 @@ export async function updateSession(request: NextRequest) {
   });
 
   // Refresh session — handle errors gracefully
-  let user: any = null;
+  let user: { id: string; email?: string | null } | null = null;
   try {
     const {
       data: { user: _user },
@@ -46,27 +49,34 @@ export async function updateSession(request: NextRequest) {
   }
 
   // FASE 3: Agregar contexto de usuario a headers para API routes
-  if (user) {
+  if (user || isDevAdminSession) {
     const requestHeaders = new Headers(request.headers);
-    requestHeaders.set('x-user-id', user.id);
-    requestHeaders.set('x-user-email', user.email || '');
+    requestHeaders.set(
+      "x-user-id",
+      user?.id ?? "00000000-0000-4000-8000-000000000001",
+    );
+    requestHeaders.set("x-user-email", user?.email || devSessionEmail || "");
     
     // Obtener rol del usuario desde user_profiles
-    try {
-      const { data: profile } = await supabase
-        .from('user_profiles')
-        .select('role, eapb_id')
-        .eq('id', user.id)
-        .single();
+    if (isDevAdminSession && !user) {
+      requestHeaders.set("x-user-role", "admin_cac");
+    } else {
+      try {
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('role, eapb_id')
+          .eq('id', user.id)
+          .single();
 
-      if (profile) {
-        requestHeaders.set('x-user-role', profile.role);
-        if (profile.eapb_id) {
-          requestHeaders.set('x-eapb-id', profile.eapb_id);
+        if (profile) {
+          requestHeaders.set('x-user-role', profile.role);
+          if (profile.eapb_id) {
+            requestHeaders.set('x-eapb-id', profile.eapb_id);
+          }
         }
+      } catch (err) {
+        console.error('Error fetching user profile:', err);
       }
-    } catch (err) {
-      console.error('Error fetching user profile:', err);
     }
 
     supabaseResponse = NextResponse.next({ request: { headers: requestHeaders } });
@@ -82,13 +92,13 @@ export async function updateSession(request: NextRequest) {
   const isProtectedRoute = request.nextUrl.pathname.startsWith("/dashboard");
   const isAuthRoute = request.nextUrl.pathname.startsWith("/auth");
 
-  if (!user && isProtectedRoute) {
+  if (!user && !isDevAdminSession && isProtectedRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
     return NextResponse.redirect(url);
   }
 
-  if (user && isAuthRoute) {
+  if ((user || isDevAdminSession) && isAuthRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);

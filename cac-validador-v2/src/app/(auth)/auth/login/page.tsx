@@ -27,12 +27,38 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
+      if (process.env.NODE_ENV === "development" && email.trim().toLowerCase() === "admin@local.test") {
+        const devResponse = await fetch("/api/dev-login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+
+        if (devResponse.ok) {
+          router.push("/dashboard");
+          return;
+        }
+      }
+
       const { error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (authError) {
+        if (process.env.NODE_ENV === "development") {
+          const devResponse = await fetch("/api/dev-login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+          });
+
+          if (devResponse.ok) {
+            router.push("/dashboard");
+            return;
+          }
+        }
+
         setError(authError.message || "Error al iniciar sesión");
         setLoading(false);
         return;
@@ -40,7 +66,20 @@ export default function LoginPage() {
 
       // Login exitoso
       router.push("/dashboard");
-    } catch (err) {
+    } catch {
+      if (process.env.NODE_ENV === "development") {
+        const devResponse = await fetch("/api/dev-login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+
+        if (devResponse.ok) {
+          router.push("/dashboard");
+          return;
+        }
+      }
+
       setError("Error inesperado al iniciar sesión");
       setLoading(false);
     }

@@ -38,6 +38,23 @@ export function useAuth(): AuthState {
 
   useEffect(() => {
     const supabase = createClient();
+    const getDevSession = (): AuthState | null => {
+      if (process.env.NODE_ENV !== "development") return null;
+      const hasDevSession = document.cookie
+        .split(";")
+        .some((cookie) => cookie.trim() === "cac_dev_session=admin@local.test");
+
+      if (!hasDevSession) return null;
+
+      return {
+        userId: "00000000-0000-4000-8000-000000000001",
+        email: "admin@local.test",
+        role: "admin_cac",
+        eapbId: null,
+        loading: false,
+        isAuthenticated: true,
+      };
+    };
 
     // Obtener sesión inicial
     async function getInitialSession() {
@@ -63,6 +80,12 @@ export function useAuth(): AuthState {
             isAuthenticated: true,
           });
         } else {
+          const devSession = getDevSession();
+          if (devSession) {
+            setState(devSession);
+            return;
+          }
+
           setState((prev) => ({
             ...prev,
             loading: false,
@@ -70,6 +93,12 @@ export function useAuth(): AuthState {
           }));
         }
       } catch {
+        const devSession = getDevSession();
+        if (devSession) {
+          setState(devSession);
+          return;
+        }
+
         setState((prev) => ({
           ...prev,
           loading: false,
