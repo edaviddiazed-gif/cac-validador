@@ -30,5 +30,4 @@ RES004_0274_2023.xlsx
 # Logs and Tools
 *.log
 .agent/
-graphify-out/
 .vite/

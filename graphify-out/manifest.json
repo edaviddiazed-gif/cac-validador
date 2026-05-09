@@ -1,0 +1,682 @@
+{
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\eslint.config.mjs": {
+    "mtime": 1776213404.298955,
+    "hash": "dfa1f5f6a7037bf39dc510f30b180002"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\next-env.d.ts": {
+    "mtime": 1776389764.3703177,
+    "hash": "d0f8375ae1199dc7acd3977fc33b78b8"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\next.config.ts": {
+    "mtime": 1776213404.7829647,
+    "hash": "9b77af189a21a7a64e4bd7a426f64176"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\postcss.config.mjs": {
+    "mtime": 1776213404.5267463,
+    "hash": "239f3ebf717465dc636818a1a619398d"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\vitest.config.ts": {
+    "mtime": 1776216023.130585,
+    "hash": "8fa0a02db71397358df8255ff251e9d7"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\backend\\app\\main.py": {
+    "mtime": 1776611086.858587,
+    "hash": "91888117cc5aaf527ebf2522dfd63782"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\backend\\app\\__init__.py": {
+    "mtime": 1776605391.5030112,
+    "hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\backend\\app\\schemas\\common.py": {
+    "mtime": 1776607405.020928,
+    "hash": "bcf65d7be79e276c96781bce9539870d"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\backend\\app\\schemas\\schema.py": {
+    "mtime": 1776611094.989541,
+    "hash": "cef11af6b8c51714ebce52ffcfac12cc"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\backend\\app\\schemas\\__init__.py": {
+    "mtime": 1776605391.5550833,
+    "hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\backend\\app\\validators\\expansion.py": {
+    "mtime": 1776551694.4929247,
+    "hash": "e8424699714339daae622d12daec5c1f"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\backend\\app\\validators\\motor_reglas.py": {
+    "mtime": 1776551694.504819,
+    "hash": "c0710568a8e35e4f1a34a0e4afa2920b"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\backend\\app\\validators\\__init__.py": {
+    "mtime": 1776605391.5341725,
+    "hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\backend\\tests\\test_api.py": {
+    "mtime": 1776605391.5899992,
+    "hash": "52abb179fd1c699a1e3f4c86b4d2b398"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\backend\\tests\\__init__.py": {
+    "mtime": 1776605391.6018107,
+    "hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\middleware.ts": {
+    "mtime": 1776215282.8914738,
+    "hash": "b15b495e9aebc67321f9f828f6193615"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\app\\layout.tsx": {
+    "mtime": 1776215331.9467943,
+    "hash": "b191398bd8126e50cefa4093fb9da69b"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\app\\page.tsx": {
+    "mtime": 1776216546.2945976,
+    "hash": "ec824727316048d25f4b7dbb44b52931"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\app\\providers.tsx": {
+    "mtime": 1776215284.9117117,
+    "hash": "dda48a29d2765a4d4ee9d37a5837d4cf"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\app\\(auth)\\auth\\login\\page.tsx": {
+    "mtime": 1776396027.465055,
+    "hash": "2a78b04fd7370d443b8f1221a57c8e2a"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\app\\(dashboard)\\layout.tsx": {
+    "mtime": 1776216391.7971604,
+    "hash": "a23899ca94dd9080fbf3669230fd04fa"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\app\\(dashboard)\\dashboard\\page.tsx": {
+    "mtime": 1776216485.575119,
+    "hash": "0d577e5e6d89f42e5c1d59b7bcb5e032"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\app\\(dashboard)\\dashboard\\manual-entry\\page.tsx": {
+    "mtime": 1777076218.4013553,
+    "hash": "a6bf9ecf510aad55cbe8ac2fca2de9a4"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\app\\(dashboard)\\dashboard\\upload\\page.tsx": {
+    "mtime": 1776216487.616837,
+    "hash": "91a0ce4e419fc0fdca653bbaf83eb338"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\app\\(dashboard)\\dashboard\\validate\\[id]\\page.tsx": {
+    "mtime": 1776216527.7811842,
+    "hash": "41ffc2a71355774fc063d56c8b8b8f67"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\app\\(dashboard)\\reports\\page.tsx": {
+    "mtime": 1776631491.643041,
+    "hash": "7a2e3fc8f796a52eba3f594aa9e1581b"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\app\\(dashboard)\\reports\\[id]\\page.tsx": {
+    "mtime": 1777075257.70799,
+    "hash": "243cf7ef5dc74e2ff31a383f6b1cdb0c"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\app\\(dashboard)\\upload\\page.tsx": {
+    "mtime": 1777075105.94777,
+    "hash": "6dc74a62fb896d11c2b913094767fdc0"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\app\\(dashboard)\\validate\\page.tsx": {
+    "mtime": 1776377938.8833568,
+    "hash": "fbecaf6a62cbd637b5ee8225263748b2"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\app\\api\\catalogos\\[tipo]\\route.ts": {
+    "mtime": 1777075573.8557484,
+    "hash": "05151628cd8114e364aad3e679c05e15"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\app\\api\\export\\route.ts": {
+    "mtime": 1777075582.318821,
+    "hash": "1a6bd84e451b9b1742d85d9c19d1dd0d"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\app\\api\\export\\txt\\route.ts": {
+    "mtime": 1777075470.5112092,
+    "hash": "6b7424b868bcad5670b5a9768dd85700"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\app\\api\\reportes\\route.ts": {
+    "mtime": 1776631491.6167922,
+    "hash": "a8decbcecfdf9db50a769c2eba7d143e"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\app\\api\\reportes\\[id]\\route.ts": {
+    "mtime": 1777075464.3079047,
+    "hash": "d23ee9cc9be98f29b50919247e83c859"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\app\\api\\upload\\route.ts": {
+    "mtime": 1777075573.7845242,
+    "hash": "7a81205cebbcc37a8335d79a4334d204"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\app\\api\\validate\\route.ts": {
+    "mtime": 1777075937.238367,
+    "hash": "f4e5abfea0e613acd447a0c0baef6c8b"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\app\\api\\validate\\[jobId]\\status\\route.ts": {
+    "mtime": 1776380358.808593,
+    "hash": "16909841262a88d9806e80fcab480418"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\components\\dashboard\\sidebar.tsx": {
+    "mtime": 1776611170.3034792,
+    "hash": "d76677767a1e35652c236c8e6c57333c"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\components\\dashboard\\stats-cards.tsx": {
+    "mtime": 1776216410.960469,
+    "hash": "acfc3c51647e6b1aba355c785771cd73"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\components\\forms\\CirugiaForm.tsx": {
+    "mtime": 1777076144.4676166,
+    "hash": "f8095f115468052b62c330943b4422c4"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\components\\forms\\DiagnosticoForm.tsx": {
+    "mtime": 1777000424.8407505,
+    "hash": "ba1e53862d245498e04f9a0e73f62180"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\components\\forms\\IdentificacionForm.tsx": {
+    "mtime": 1776611157.5609584,
+    "hash": "77ed4948ee740cc6bce4abd86c811eed"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\components\\forms\\PaliativosForm.tsx": {
+    "mtime": 1777076190.722061,
+    "hash": "c8645f142ec9cae619437ce9c84be5e6"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\components\\forms\\RadioterapiaForm.tsx": {
+    "mtime": 1777076155.3108754,
+    "hash": "34c129f913e5db67c6212f10f38710cb"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\components\\forms\\ResultadoForm.tsx": {
+    "mtime": 1777076749.945892,
+    "hash": "afe4b86af91dc5d038ab012891895a04"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\components\\forms\\TerapiaSistemicaForm.tsx": {
+    "mtime": 1777001836.3690364,
+    "hash": "39f757dc868d12b9b844df4c770d3469"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\components\\forms\\TrasplanteForm.tsx": {
+    "mtime": 1777076155.340746,
+    "hash": "749f02eabb3df554ddfaea8a8a9b4994"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\components\\ui\\alert.tsx": {
+    "mtime": 1776216349.3388267,
+    "hash": "cdb08d0146416f8f890c9ab5a66d76a1"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\components\\ui\\avatar.tsx": {
+    "mtime": 1776216347.6825333,
+    "hash": "8b41492907a73176027427a3f0fd2302"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\components\\ui\\badge.tsx": {
+    "mtime": 1776216342.418005,
+    "hash": "e4ec840217040d5630ee6ed7213a1d72"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\components\\ui\\button.tsx": {
+    "mtime": 1776214628.965362,
+    "hash": "705bf3552a39e0c722665ccbecb30654"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\components\\ui\\card.tsx": {
+    "mtime": 1776216341.175333,
+    "hash": "77a10bd948ca424972a28e704a3df604"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\components\\ui\\dialog.tsx": {
+    "mtime": 1776216350.399339,
+    "hash": "d9618a63d34473ec512321cc12d43692"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\components\\ui\\dropdown-menu.tsx": {
+    "mtime": 1776216347.106054,
+    "hash": "e6107cbb2088437e76a858f75b5a0280"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\components\\ui\\input.tsx": {
+    "mtime": 1776216343.8340547,
+    "hash": "0607b02d99a2e92f9509223f36ccc6ec"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\components\\ui\\progress.tsx": {
+    "mtime": 1776216343.386742,
+    "hash": "aa71e8ceb68b33af5ed5799f42cd873e"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\components\\ui\\scroll-area.tsx": {
+    "mtime": 1776216348.2792947,
+    "hash": "ac8fc719d0fd13c77c933474827337da"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\components\\ui\\select.tsx": {
+    "mtime": 1776216344.5887756,
+    "hash": "ab95f478cb74d1906b07425c15b124cc"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\components\\ui\\separator.tsx": {
+    "mtime": 1776216346.4676857,
+    "hash": "3de2dca3e47ab29c4b1f632671545628"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\components\\ui\\sheet.tsx": {
+    "mtime": 1776395433.2882183,
+    "hash": "bb3fae9ac47576758129feb5d8f54fda"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\components\\ui\\skeleton.tsx": {
+    "mtime": 1776216345.6548734,
+    "hash": "0e6e825c43d858d98c9903f4da975382"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\components\\ui\\table.tsx": {
+    "mtime": 1776216341.9632232,
+    "hash": "44f87727e60080863edb00fdd2fcd8da"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\components\\ui\\tabs.tsx": {
+    "mtime": 1776216342.907922,
+    "hash": "429035bc858475cd3bcedbb08a5ba8da"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\components\\ui\\toast.tsx": {
+    "mtime": 1777074947.79315,
+    "hash": "cf353513f74d7c5862c510f4131b9273"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\components\\ui\\tooltip.tsx": {
+    "mtime": 1776216345.1198075,
+    "hash": "6566a444ce6c0a87d6611903430534fa"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\components\\upload\\drop-zone.tsx": {
+    "mtime": 1776216412.991313,
+    "hash": "7054612ea14148dcb543ff92d61ce8fc"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\components\\validation\\error-table.tsx": {
+    "mtime": 1776216452.2676027,
+    "hash": "28112ba9e0f91284e06ba29a1ff5ba80"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\components\\validation\\progress-live.tsx": {
+    "mtime": 1776216467.8624072,
+    "hash": "c0d0f5809ff3f84aad85f9c8401e60e7"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\hooks\\useAuth.ts": {
+    "mtime": 1777074947.6011837,
+    "hash": "9fa542da63d7d50547d50bbe9c00fb31"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\lib\\env.ts": {
+    "mtime": 1776215024.4900117,
+    "hash": "a0d3570abca840e9fe56aeb40674cc5c"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\lib\\store.ts": {
+    "mtime": 1776611132.472864,
+    "hash": "dcc425ca2fb92ae60ae5cbee118c276f"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\lib\\utils.ts": {
+    "mtime": 1776214629.6474807,
+    "hash": "5a6fd53fdcf2be529e9cc0b718fde352"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\lib\\exporters\\excel-exporter.ts": {
+    "mtime": 1776380755.7733393,
+    "hash": "dc3943d568239b9f11e68eb45df09594"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\lib\\exporters\\pdf-reporter.ts": {
+    "mtime": 1776633951.8734787,
+    "hash": "1680e626e51242bdd9957cc04be55edc"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\lib\\exporters\\txt-exporter.ts": {
+    "mtime": 1776380726.338525,
+    "hash": "a2720109c043a27914d49a3c22a05fa0"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\lib\\hooks\\use-catalogos.ts": {
+    "mtime": 1776999969.1351082,
+    "hash": "66b4f9b92ece64f7edfb734ceb6a3d67"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\lib\\hooks\\useValidationStatus.ts": {
+    "mtime": 1776380435.398473,
+    "hash": "e4958191cb7d526a03959422d577bcdc"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\lib\\parsers\\cac-parser.ts": {
+    "mtime": 1776215675.1223326,
+    "hash": "72172ce30c74dcefae46d6e78790e39b"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\lib\\parsers\\character-validator.ts": {
+    "mtime": 1776215673.166964,
+    "hash": "1d49a228990c7b24975bb73eb4607504"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\lib\\parsers\\field-mapping.ts": {
+    "mtime": 1776215648.3974242,
+    "hash": "4f15d6da309db09509f69e105d1e49e4"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\lib\\parsers\\filename-validator.ts": {
+    "mtime": 1776215658.1890738,
+    "hash": "085e4397fa34db603853fcce01fb2994"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\lib\\parsers\\__tests__\\parser.test.ts": {
+    "mtime": 1776216080.3456533,
+    "hash": "85555c6148e3e700dd908f2836a74506"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\lib\\security\\rate-limit.ts": {
+    "mtime": 1776380029.2157283,
+    "hash": "7a1e3f327eef6eb2e3e4af82e0e9e598"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\lib\\supabase\\client.ts": {
+    "mtime": 1776215268.6209188,
+    "hash": "6051557b97e31b3448cf1fb1e87de20e"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\lib\\supabase\\middleware.ts": {
+    "mtime": 1776394188.324836,
+    "hash": "3b92d2cdff41aaf533e43d148c6f7202"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\lib\\supabase\\server.ts": {
+    "mtime": 1776215275.4517877,
+    "hash": "bba93ffa0266c6262bd018978fddda5b"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\lib\\validations\\cohort-dates.ts": {
+    "mtime": 1777075317.340943,
+    "hash": "2e3ceef4c3bee8efca53c9ee55e43f6a"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\lib\\validations\\engine.ts": {
+    "mtime": 1776633630.4067645,
+    "hash": "86bff4f73e7fac5cb28b4ce4dc5cf902"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\lib\\validations\\expansion-engine.ts": {
+    "mtime": 1777075850.0292258,
+    "hash": "88d65e4ff1fbb8e8c0b34e3b1c01c5df"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\lib\\validations\\helpers.ts": {
+    "mtime": 1776215717.5204415,
+    "hash": "0394ec5b5c94cf46176521eca05c96e7"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\lib\\validations\\index.ts": {
+    "mtime": 1777075330.503965,
+    "hash": "70c3d06b5c8e57cf930a85dcc4a55d44"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\lib\\validations\\types.ts": {
+    "mtime": 1776215638.9269612,
+    "hash": "5b828b8afed9e79e7523495aecd7d098"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\lib\\validations\\rules\\clinical-validations.ts": {
+    "mtime": 1777075710.7908103,
+    "hash": "71a9e54e5693ca044b742ec553c6d02b"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\lib\\validations\\rules\\cross-validations.ts": {
+    "mtime": 1776215904.176698,
+    "hash": "1007519349e884f930c5bff30e364624"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\lib\\validations\\rules\\v01-v16.ts": {
+    "mtime": 1776215740.6677437,
+    "hash": "c03fa9ae2ad37a6e7d86ca2b4d16ff84"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\lib\\validations\\rules\\v106-v110.ts": {
+    "mtime": 1776215902.1500132,
+    "hash": "3d5acb847d5bfc746de4e8d95be146f8"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\lib\\validations\\rules\\v111-v134.ts": {
+    "mtime": 1776215902.1460147,
+    "hash": "f6b034d65c0cc2c19efed450e97349de"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\lib\\validations\\rules\\v17-v44.ts": {
+    "mtime": 1776215763.1627052,
+    "hash": "2cae5142fd7d8bc2d5acf219731c67d5"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\lib\\validations\\rules\\v45-v73.ts": {
+    "mtime": 1776215778.1556847,
+    "hash": "3de9eb7b41f775e00360d5b3ea6f7ef3"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\lib\\validations\\rules\\v74-v85.ts": {
+    "mtime": 1776215788.4726038,
+    "hash": "67b4e501cca360dec9c31fac6e4c2286"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\lib\\validations\\rules\\v86-v105.ts": {
+    "mtime": 1776215790.499513,
+    "hash": "10801aee60d88ef4da36dd8bef9f4511"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\lib\\validations\\__tests__\\engine.test.ts": {
+    "mtime": 1776216082.4158008,
+    "hash": "6b58b071bac3e6ab65fb6fbc9890d410"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\src\\types\\cac.ts": {
+    "mtime": 1776215249.3713708,
+    "hash": "8c03bb4bdadb646f72e3f95c2c2bacca"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\supabase\\seed.sql": {
+    "mtime": 1776377764.0908408,
+    "hash": "d8649c554f3f9627ff14ccd972cdebb2"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\supabase\\functions\\validate-cac\\index.ts": {
+    "mtime": 1776380527.77457,
+    "hash": "00625f2a8ed89f4e94c53d86daadfcf8"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\supabase\\migrations\\001_initial_schema.sql": {
+    "mtime": 1776377777.4049156,
+    "hash": "6ea9aa30491b04ff3cf99d39e7bef8ac"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\supabase\\migrations\\002_audit_trigger.sql": {
+    "mtime": 1776380017.096538,
+    "hash": "9816ccb69f46ca452193b404362d4aff"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\supabase\\migrations\\003_validation_jobs.sql": {
+    "mtime": 1776380358.5802557,
+    "hash": "5d8f314aa013becefbcedd5cddc3a236"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\backend\\app\\carga_masiva.py": {
+    "mtime": 1774139535.3869543,
+    "hash": "e16705692ea44639c094f6a4c6e4a0fe"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\backend\\app\\catalogos.py": {
+    "mtime": 1773667263.7461,
+    "hash": "e19ce89b02931221f14f068a73c217c5"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\backend\\app\\config_cohorte.py": {
+    "mtime": 1774008275.8847458,
+    "hash": "2eb2c266159b9e5506cd8d1d8025cdd6"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\backend\\app\\main.py": {
+    "mtime": 1774008321.392077,
+    "hash": "877a57f923975d42606091f25e29bc5a"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\backend\\app\\__init__.py": {
+    "mtime": 1774217809.3492527,
+    "hash": "777833a442370f8e33989ebb29ae6935"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\backend\\app\\schemas\\cac.py": {
+    "mtime": 1774217238.674589,
+    "hash": "8e2799f623083965bb75e579242c8b54"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\backend\\app\\schemas\\common.py": {
+    "mtime": 1774217275.2132306,
+    "hash": "115a858ae4b9d6a51895ce00eaf6c06e"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\backend\\app\\schemas\\diagnostico.py": {
+    "mtime": 1774011499.1356568,
+    "hash": "c5ea390f0941f6901fecaa4e1bcc6d6a"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\backend\\app\\schemas\\paciente.py": {
+    "mtime": 1773667263.8951962,
+    "hash": "9b741adf87381bd96dc2dfb191938300"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\backend\\app\\schemas\\paliativos.py": {
+    "mtime": 1774139495.8266742,
+    "hash": "5059c456db6e57df46b7b41e2ca829ee"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\backend\\app\\schemas\\procedimientos.py": {
+    "mtime": 1774139525.8198645,
+    "hash": "f2d43d97011e1161a4db614dbd38285b"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\backend\\app\\schemas\\tratamientos.py": {
+    "mtime": 1773667263.9568548,
+    "hash": "2716f8863a5fa4c834ca8520e3e4c1ef"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\backend\\app\\schemas\\__init__.py": {
+    "mtime": 1773667263.936376,
+    "hash": "c027d3181ecef25cc95d79341694f2e2"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\backend\\app\\validators\\base.py": {
+    "mtime": 1773935352.661164,
+    "hash": "c64e05041537e7a7db9bb90b95d078a2"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\backend\\app\\validators\\clinicos.py": {
+    "mtime": 1773667264.0382245,
+    "hash": "7ce3548fadfb85d6bc2b72324fa9a892"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\backend\\app\\validators\\expansion.py": {
+    "mtime": 1776551694.4929247,
+    "hash": "e8424699714339daae622d12daec5c1f"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\backend\\app\\validators\\motor_reglas.py": {
+    "mtime": 1776608617.4794521,
+    "hash": "fac21f7c93606209b98affaa0a6c2402"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\backend\\app\\validators\\__init__.py": {
+    "mtime": 1774219497.6245725,
+    "hash": "1d326c63f2935ba49014af9e2bcabef6"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\backend\\scripts\\generar_catalogos.py": {
+    "mtime": 1776551694.526474,
+    "hash": "3310ae2023a3a1d2e4b2fc5783ac2eea"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\backend\\tests\\test_motor_cac.py": {
+    "mtime": 1776551694.5360844,
+    "hash": "8382be717e6ed40aeebb60fb20c589d7"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\frontend\\vite.config.ts": {
+    "mtime": 1773667263.2473865,
+    "hash": "241f2cb52e9e0e29717b326e4854b11b"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\frontend\\src\\App.tsx": {
+    "mtime": 1774219554.205392,
+    "hash": "a43b655f3ad0952a4ce3292a64bedd24"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\frontend\\src\\catalogos.ts": {
+    "mtime": 1774011477.7980773,
+    "hash": "8ba87f997df90e82d65ac04c49879f0b"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\frontend\\src\\initialState.ts": {
+    "mtime": 1774139455.673706,
+    "hash": "156e8f0c19c125cec5b4fcfab328301c"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\frontend\\src\\main.tsx": {
+    "mtime": 1773667263.4090269,
+    "hash": "3fc4ada8543223d62223592cc78e622d"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\frontend\\src\\types.ts": {
+    "mtime": 1774217307.9194431,
+    "hash": "4de4d0c66576830ac6d4d36e79b51a3a"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\frontend\\src\\vite-env.d.ts": {
+    "mtime": 1773667263.4387338,
+    "hash": "0352474ba2918efe13895edbc3780d94"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\frontend\\src\\components\\Field.tsx": {
+    "mtime": 1774216751.1620095,
+    "hash": "3d5eee802c31be7e4fcdcd31ab43ef85"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\frontend\\src\\pages\\SecDiagnostico.tsx": {
+    "mtime": 1774217406.6629364,
+    "hash": "001fa496d55b12636989f1eada836964"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\frontend\\src\\pages\\SecFinal.tsx": {
+    "mtime": 1774217428.0134916,
+    "hash": "3a72579fd8a4b9e8c796ac52c23e76f9"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\frontend\\src\\pages\\SecIdentificacion.tsx": {
+    "mtime": 1774217333.4456336,
+    "hash": "83f17b602ce442b29643e53bedbb556a"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\frontend\\src\\pages\\SecTratamientos.tsx": {
+    "mtime": 1774217418.1007984,
+    "hash": "7929904eb134eafffccc0c104eccdc97"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\README.md": {
+    "mtime": 1776377085.5618753,
+    "hash": "a5aef6a5c8ad762003ba282938e4d66e"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\AGENTS.md": {
+    "mtime": 1776213835.638356,
+    "hash": "9e09241799026ac05be315a2f0b50055"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\CLAUDE.md": {
+    "mtime": 1776213835.6403704,
+    "hash": "5c27369b226fcf2be8a6cfe52224e767"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\README.md": {
+    "mtime": 1776213404.2490196,
+    "hash": "f15aaa42d5d299d091b1171097ea56ad"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\backend\\README.md": {
+    "mtime": 1776605391.4729683,
+    "hash": "d85742748702329c57dcf124c9d9b7f1"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\backend\\requirements.txt": {
+    "mtime": 1776611270.4809737,
+    "hash": "a0296f1dcb257102e1bcc46cc65f7f10"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\docs\\arquitectura\\MATRIZ_V1_V2.md": {
+    "mtime": 1776958275.0330513,
+    "hash": "09cbd05d6a0b0badfc6ff7af6639a929"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\docs\\arquitectura\\plan_maestro.txt": {
+    "mtime": 1776218455.638242,
+    "hash": "bac7aec4993b78cdc327db3b5a05d77d"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\docs\\fases_historico\\ESTADO_SESION_FINAL.md": {
+    "mtime": 1776381030.0,
+    "hash": "2aa3db50f524003779f9f92a5d6d4576"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\docs\\fases_historico\\EVALUACION_FASE0.md": {
+    "mtime": 1776377744.0,
+    "hash": "7d95454ae07f0095aa774450099e1295"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\docs\\fases_historico\\FASE2_PLAN.md": {
+    "mtime": 1776377842.0,
+    "hash": "e2ff2184a752415877bfa0df1587ae92"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\docs\\fases_historico\\FASE3_PLAN.md": {
+    "mtime": 1776380281.0,
+    "hash": "645debe49c469872b6db79142f2a7e1a"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\docs\\fases_historico\\FASE3_PROGRESO.md": {
+    "mtime": 1776380480.0,
+    "hash": "5819d99661bc9d12653223825e978fc6"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\docs\\fases_historico\\FASE3_RESUMEN.md": {
+    "mtime": 1776380545.0,
+    "hash": "45de5b02801d07f43a0f977434b6a95d"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\docs\\fases_historico\\FASE4_PLAN.md": {
+    "mtime": 1776380726.0,
+    "hash": "977dd85db9afd1a92d94dbf67e1224fe"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\docs\\fases_historico\\FASE4_RESUMEN.md": {
+    "mtime": 1776380901.0,
+    "hash": "ab5ca6fe487766481957dbe6cfc0eb7c"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\docs\\fases_historico\\implementation_plan_legacy.md": {
+    "mtime": 1777157589.2888052,
+    "hash": "d4d6d48d54570d60743b27bf801f7e1b"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\docs\\guias\\EXPLICACION_SUPABASE.md": {
+    "mtime": 1776380082.039155,
+    "hash": "fde237df913f314ed5f8d376b3c98335"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\docs\\guias\\GUIA_IMPLEMENTACION_COMPLETA.md": {
+    "mtime": 1776380014.3262918,
+    "hash": "2df6e95e0b24c96fdc27ffe3d4638abc"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\docs\\guias\\INICIO_RAPIDO.md": {
+    "mtime": 1776380038.661867,
+    "hash": "4f2a46127dfdc5b44d9cae2fba1de380"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\docker-compose.yml": {
+    "mtime": 1773667263.1351743,
+    "hash": "537a88366fcc3913c2be459a3e931ced"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\README_v1.md": {
+    "mtime": 1773670138.2449036,
+    "hash": "52042372bc71cd2c9aaa24c346df5d0a"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\backend\\CHANGELOG.md": {
+    "mtime": 1776551694.458586,
+    "hash": "fc761e9912a3021c6f80731f284224ae"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\backend\\requirements.txt": {
+    "mtime": 1776609320.904945,
+    "hash": "7dcdcf89245706d33029e7325844c3ce"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\v1_legacy\\frontend\\index.html": {
+    "mtime": 1778183990.5982287,
+    "hash": "eeb53ef718652d86f3af36df57c67235"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\public\\file.svg": {
+    "mtime": 1776213404.547375,
+    "hash": "d09f95206c3fa0bb9bd9fefabfd0ea71"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\public\\globe.svg": {
+    "mtime": 1776213404.5774398,
+    "hash": "2aaafa6a49b6563925fe440891e32717"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\public\\next.svg": {
+    "mtime": 1776213404.6160975,
+    "hash": "8e061864f388b47f33a1c3780831193e"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\public\\vercel.svg": {
+    "mtime": 1776213404.647136,
+    "hash": "c0af2f507b369b085b35ef4bbe3bcf1e"
+  },
+  "C:\\Users\\Usuario\\OneDrive\\Escritorio\\Proyecto CAC\\cac-validador\\cac-validador-v2\\public\\window.svg": {
+    "mtime": 1776213404.7102988,
+    "hash": "a2760511c65806022ad20adf74370ff3"
+  }
+}
