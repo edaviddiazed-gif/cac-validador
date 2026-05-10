@@ -2,8 +2,12 @@
 """
 Validaciones de capa 1: formato, rango y coherencia temporal.
 Cada función devuelve lista de ErrorDetalle.
+
+FECHAS DINÁMICAS: Todas las comparaciones contra fechas de cohorte usan
+config_cohorte.resolver_fecha_corte() y resolver_fecha_inicio().
+No existen fechas hardcodeadas en este módulo.
 """
-from datetime import datetime
+from datetime import datetime, date
 from typing import List, Optional
 from app.schemas.cac import CACReport
 from app.schemas.common import ErrorDetalle, FECHAS_ESPECIALES
@@ -86,8 +90,16 @@ def validar_coherencia_temporal(r: CACReport) -> List[ErrorDetalle]:
 
     fn = _parse(r.paciente.fecha_nacimiento)
     fd = _parse(r.diagnostico.fecha_diagnostico)
-    fc = _parse(r.cabecera.fecha_corte)
     fm = _parse(r.resultado.fecha_muerte)
+
+    # Resolver fecha de corte dinámicamente (no hardcodeada)
+    from app.config_cohorte import resolver_fecha_corte, resolver_fecha_inicio
+    fc_raw = (r.resultado.fecha_bdua if hasattr(r.resultado, "fecha_bdua") and r.resultado.fecha_bdua
+               else (r.cabecera.fecha_corte if hasattr(r.cabecera, "fecha_corte") else None))
+    fc_date = resolver_fecha_corte(fc_raw)
+    fc = datetime(fc_date.year, fc_date.month, fc_date.day) if fc_date else None
+    fi_date = resolver_fecha_inicio(fc_date) if fc_date else None
+    fi = datetime(fi_date.year, fi_date.month, fi_date.day) if fi_date else None
 
     # R-020: fecha_diagnostico >= fecha_nacimiento
     if fn and fd and fd < fn:
@@ -97,8 +109,8 @@ def validar_coherencia_temporal(r: CACReport) -> List[ErrorDetalle]:
 
     # R-021: fecha_remision <= fecha_ingreso_ips
     fr = _parse(r.diagnostico.fecha_remision)
-    fi = _parse(r.diagnostico.fecha_ingreso_ips)
-    if fr and fi and fr > fi:
+    fi_ips = _parse(r.diagnostico.fecha_ingreso_ips)
+    if fr and fi_ips and fr > fi_ips:
         _err(errores, "R-021", "diagnostico.fecha_remision",
              "La fecha de remisión (V19) debe ser anterior o igual a la fecha de ingreso a la institución diagnóstica (V20).",
              variable_res="V19")
@@ -158,10 +170,20 @@ def validar_coherencia_temporal(r: CACReport) -> List[ErrorDetalle]:
                  "La fecha de muerte no puede ser anterior a la fecha de diagnóstico del cáncer.",
                  variable_res="V129")
 
+    # R-029: fecha_diagnostico debe caer dentro del período de reporte
+    # Validación dinámica: usa fecha_inicio y fecha_corte de la cohorte activa.
+    if fd and fi and fd < fi:
+        _err(errores, "R-029", "diagnostico.fecha_diagnostico",
+             f"La fecha de diagnóstico ({r.diagnostico.fecha_diagnostico}) es anterior "
+             f"al inicio del período de reporte ({fi.strftime('%Y-%m-%d')}). "
+             f"Verifique si el registro corresponde a esta cohorte.",
+             nivel="ADVERTENCIA", variable_res="V18")
+
     # R-060 (advertencia): fecha_diagnostico <= fecha_corte
     if fd and fc and fd > fc:
         _err(errores, "R-060", "diagnostico.fecha_diagnostico",
-             "La fecha de diagnóstico es posterior a la fecha de corte del período. Verifique si el dato es correcto.",
+             f"La fecha de diagnóstico es posterior a la fecha de corte del período "
+             f"({fc.strftime('%Y-%m-%d')}). Verifique si el dato es correcto.",
              nivel="ADVERTENCIA", variable_res="V18")
 
     return errores
