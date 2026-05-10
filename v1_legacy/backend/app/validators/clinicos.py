@@ -93,7 +93,6 @@ def validar_tipo_cancer(r: CACReport) -> List[ErrorDetalle]:
              variable_res="V17")
 
     # ── R-SEXO-M: CIE-10 exclusivo de hombres (próstata, pene, testículo…) ──
-    # Regla extraída directamente del Excel: 18 códigos solo masculinos
     if cie in CIE10_SOLO_M and sexo != "M":
         _err(errores, "R-SEXO-M", "paciente.sexo",
              f"El diagnóstico '{cie}' corresponde a un tumor exclusivo del sexo masculino "
@@ -103,7 +102,6 @@ def validar_tipo_cancer(r: CACReport) -> List[ErrorDetalle]:
              variable_res="V8")
 
     # ── R-SEXO-F: CIE-10 exclusivo de mujeres (útero, ovario, cuello, vulva…) ──
-    # Regla extraída directamente del Excel: 35 códigos solo femeninos
     if cie in CIE10_SOLO_F and sexo != "F":
         _err(errores, "R-SEXO-F", "paciente.sexo",
              f"El diagnóstico '{cie}' corresponde a un tumor exclusivo del sexo femenino "
@@ -120,10 +118,6 @@ def validar_tipo_cancer(r: CACReport) -> List[ErrorDetalle]:
                  "Para cáncer de mama que no es in situ, debe registrar si se realizó la prueba HER2 (variable 31).",
                  variable_res="V31")
     else:
-        # HER2 debe ser 98 si no es mama
-        if _es_valor_clinico(r.diagnostico.her2_realizado) and r.diagnostico.her2_realizado not in {"97", "99"}:
-            if r.diagnostico.her2_realizado == "1":
-                pass  # podría ser error pero no bloqueamos
         pass
 
     # R-031: cáncer colorrectal → Dukes
@@ -249,10 +243,36 @@ def validar_estado_vital(r: CACReport) -> List[ErrorDetalle]:
              "El usuario no está registrado como fallecido, pero tiene fecha de muerte. Verifique el estado vital (V125).",
              nivel="ADVERTENCIA", variable_res="V125")
 
-    # R-055: fecha_bdua fija
-    if res.fecha_bdua != "2024-01-01":
-        _err(errores, "R-055", "resultado.fecha_bdua",
-             "La variable 134 (fecha BDUA) debe tener el valor fijo 2024-01-01.",
-             variable_res="V134")
+    # R-055: V134 (fecha_bdua) debe coincidir con la fecha de corte activa de la cohorte.
+    # FIX: eliminada la comparación hardcodeada contra "2024-01-01".
+    # Ahora se valida dinámicamente usando config_cohorte.resolver_fecha_corte().
+    # Si hay cohorte manual configurada (p.ej. 2027-01-01), esa es la fecha esperada.
+    # Si no hay config manual y el propio registro trae fecha_bdua, se acepta cualquier
+    # fecha ISO válida (el motor la usará como referencia para las fechas dinámicas).
+    from app.config_cohorte import get_cohorte
+    cfg = get_cohorte()
+    if cfg.get("modo") == "manual" and cfg.get("fecha_corte"):
+        fecha_esperada = cfg["fecha_corte"]
+        if res.fecha_bdua and res.fecha_bdua != fecha_esperada:
+            _err(errores, "R-055", "resultado.fecha_bdua",
+                 f"La variable 134 (fecha de corte / BDUA) debe ser {fecha_esperada} "
+                 f"según la cohorte configurada. Se recibió '{res.fecha_bdua}'.",
+                 variable_res="V134")
+    else:
+        # Modo automático: solo verificar que sea una fecha ISO válida y no vacía
+        if res.fecha_bdua and res.fecha_bdua not in {"", None}:
+            try:
+                from datetime import datetime
+                datetime.strptime(res.fecha_bdua, "%Y-%m-%d")
+            except ValueError:
+                _err(errores, "R-055", "resultado.fecha_bdua",
+                     f"La variable 134 (fecha de corte / BDUA) debe tener formato YYYY-MM-DD. "
+                     f"Se recibió '{res.fecha_bdua}'.",
+                     variable_res="V134")
+        elif not res.fecha_bdua:
+            _err(errores, "R-055", "resultado.fecha_bdua",
+                 "La variable 134 (fecha de corte / BDUA) es obligatoria. "
+                 "Debe indicar la fecha de cierre del período de reporte (ej: 2027-01-01 para cohorte 2026).",
+                 variable_res="V134")
 
     return errores
